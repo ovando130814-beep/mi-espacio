@@ -1,0 +1,5 @@
+﻿Fecha,Categoria,Titulo,Tipo,Ubicacion,URL,Motivo,Evento
+"2026-09-12","Manual","[Ejemplo] Manual de inventario de equipos","pdf","https://ejemplo.com/manual-inventario.pdf","https://ejemplo.com/manual-inventario.pdf","Lo necesito para el inventario anual de la sede","Inventario 2026"
+"2026-09-20","URL-Trabajo","[Ejemplo] Portal de planillas en linea","","https://ejemplo.com/planillas","https://ejemplo.com/planillas","Consulta mensual de planillas del personal","Cierre mensual"
+"2026-09-28","Imagen-Sistema","[Ejemplo] Captura de error al sincronizar tabletas","jpg","04-Imagenes-Sistemas/123.jpg","","Evidencia del fallo para escalar al soporte","Incidente de sincronizacion"
+"2026-09-30","Nota","[Ejemplo] Cambio en el procedimiento de actas","","","","Para no tener que volver a investigar el proceso cada año","Reunión con coordinación académica"

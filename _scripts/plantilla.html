@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Espacio</title>
+<style>
+  :root{
+    --bg:#0f141a; --panel:#161d26; --panel2:#1c2531; --line:#2a3644;
+    --txt:#e6edf3; --muted:#8b9bad; --accent:#4da3ff; --ok:#3fb950;
+    --c1:#4da3ff; --c2:#f0a742; --c3:#b083f0; --c4:#3fb950; --c5:#ff7b72;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  header{position:sticky;top:0;z-index:10;background:rgba(15,20,26,.95);
+         backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:14px 18px}
+  h1{margin:0;font-size:19px;letter-spacing:.3px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+  input[type=search]{flex:1;min-width:190px;background:var(--panel2);color:var(--txt);
+    border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:14px;outline:none}
+  input[type=search]:focus{border-color:var(--accent)}
+  select,button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+    border-radius:8px;padding:9px 11px;font-size:13.5px;cursor:pointer}
+  button:hover,select:hover{border-color:var(--accent)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+  .chip{border:1px solid var(--line);background:var(--panel2);border-radius:999px;
+        padding:5px 13px;font-size:12.5px;cursor:pointer;color:var(--muted);user-select:none}
+  .chip.on{color:#0f141a;font-weight:600}
+  .chip[data-c="Personal"].on{background:var(--c1)}
+  .chip[data-c="URL-Trabajo"].on{background:var(--c2)}
+  .chip[data-c="Manual"].on{background:var(--c3)}
+  .chip[data-c="Imagen-Sistema"].on{background:var(--c4)}
+  .chip[data-c="Nota"].on{background:var(--c5)}
+  main{padding:16px 18px 60px;max-width:1150px;margin:0 auto}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+        padding:9px 14px;font-size:12.5px;color:var(--muted)}
+  .stat b{display:block;font-size:20px;color:var(--txt);line-height:1.2}
+  .month{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--accent);
+         margin:22px 0 9px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+        padding:13px 15px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start}
+  .card:hover{border-color:#3b4b5e}
+  .date{min-width:88px;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);
+        text-align:right;padding-top:2px}
+  .date b{display:block;color:var(--txt);font-size:15px}
+  .body{flex:1;min-width:0}
+  .title{font-weight:600;font-size:15px;word-break:break-word}
+  .title a{color:var(--txt);text-decoration:none}
+  .title a:hover{color:var(--accent);text-decoration:underline}
+  .badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.6px;
+    text-transform:uppercase;border-radius:5px;padding:2px 7px;margin-right:7px;vertical-align:1px}
+  .b-Personal{background:rgba(77,163,255,.16);color:var(--c1)}
+  .b-URL-Trabajo{background:rgba(240,167,66,.16);color:var(--c2)}
+  .b-Manual{background:rgba(176,131,240,.16);color:var(--c3)}
+  .b-Imagen-Sistema{background:rgba(63,185,80,.16);color:var(--c4)}
+  .b-Nota{background:rgba(255,123,114,.16);color:var(--c5)}
+  .meta{font-size:12.5px;color:var(--muted);margin-top:5px;word-break:break-word}
+  .meta .k{color:#6f8296;font-weight:600}
+  .ev{display:inline-block;background:var(--panel2);border:1px dashed var(--line);
+      border-radius:6px;padding:1px 8px;font-size:12px;color:#c6d3e1;margin-top:6px}
+  .acts{display:flex;flex-direction:column;gap:6px}
+  .acts a,.acts button{font-size:12px;padding:5px 10px;border-radius:7px;text-decoration:none;
+      text-align:center;white-space:nowrap;border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
+  .acts a:hover{border-color:var(--accent);color:var(--accent)}
+  .empty{text-align:center;color:var(--muted);padding:55px 10px;font-size:14.5px}
+  footer{color:#5c6c7e;font-size:12px;text-align:center;padding:18px}
+  @media(max-width:640px){
+    .date{min-width:64px}.card{flex-direction:column;gap:8px}
+    .acts{flex-direction:row}.acts a,.acts button{flex:1}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mi <span>Espacio</span> personal</h1>
+  <div class="sub" id="sub"></div>
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Buscar por título, motivo, evento o URL…">
+    <select id="sort">
+      <option value="fecha-desc">Fecha: más reciente</option>
+      <option value="fecha-asc">Fecha: más antiguo</option>
+      <option value="titulo-asc">Título A–Z</option>
+      <option value="categoria-asc">Por categoría</option>
+    </select>
+    <button id="group">Agrupar por mes: Sí</button>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+  <div class="stats" id="stats"></div>
+  <div id="list"></div>
+  <footer id="foot"></footer>
+</main>
+
+<script>
+const DATOS = __CATALOGO_JSON__;
+
+const CATS = ["Personal","URL-Trabajo","Manual","Imagen-Sistema","Nota"];
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+               "septiembre","octubre","noviembre","diciembre"];
+let activos = new Set(CATS);
+let agrupa = true;
+
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esUrl = u => /^https?:\/\//i.test(u||"");
+const esImagen = (u,t) => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(u||"") ||
+  (/imagen/i.test(t||"") && /\.(png|jpe?g|webp)$/i.test(u||""));
+
+function fmtFecha(f){
+  const [y,m,d] = (f||"").split("-").map(Number);
+  if(!y) return {dia:"—",mes:"—",full:"sin fecha",key:""};
+  return {dia:String(d).padStart(2,"0"), mes:MESES[m-1].slice(0,3).toUpperCase(),
+          full:`${d} de ${MESES[m-1]} de ${y}`, key:`${y}-${String(m).padStart(2,"0")}`};
+}
+function mesLabel(k){
+  const [y,m] = k.split("-").map(Number);
+  return `${MESES[m-1]} de ${y}`;
+}
+
+function render(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const sort = document.getElementById("sort").value;
+
+  let rows = DATOS.filter(r => activos.has(r.c));
+  if(q) rows = rows.filter(r => [r.t,r.m,r.e,r.u,r.c].join(" ").toLowerCase().includes(q));
+
+  rows.sort((a,b)=>{
+    if(sort==="fecha-asc")  return (a.f||"").localeCompare(b.f||"");
+    if(sort==="titulo-asc") return (a.t||"").localeCompare(b.t||"","es");
+    if(sort==="categoria-asc") return (a.c||"").localeCompare(b.c||"") || (b.f||"").localeCompare(a.f||"");
+    return (b.f||"").localeCompare(a.f||"");
+  });
+
+  const list = document.getElementById("list");
+  if(!rows.length){ list.innerHTML = '<div class="empty">No hay nada que coincida con tu búsqueda.</div>'; return; }
+
+  let html = "", lastKey = "";
+  rows.forEach(r=>{
+    const F = fmtFecha(r.f);
+    if(agrupa && sort.startsWith("fecha")){
+      if(F.key !== lastKey){
+        lastKey = F.key;
+        html += `<div class="month">${F.key?mesLabel(F.key):"sin fecha"} · ${
+          rows.filter(x=>fmtFecha(x.f).key===F.key).length} elementos</div>`;
+      }
+    }
+    const target = r.u || "";
+    const link = target ? (esUrl(target)||target.startsWith("file:") ? target
+                          : encodeURI(target.split("\\").join("/"))) : "";
+    const esWeb = esUrl(target);
+
+    html += `<div class="card">
+      <div class="date"><b>${F.dia}</b>${F.mes}</div>
+      <div class="body">
+        <div class="title"><span class="badge b-${r.c}">${r.c}</span>${
+          link? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(r.t)}</a>` : esc(r.t)}</div>
+        ${r.m? `<div class="meta"><span class="k">Motivo:</span> ${esc(r.m)}</div>`:""}
+        ${esWeb? `<div class="meta"><span class="k">URL:</span> <a href="${esc(link)}" target="_blank" rel="noopener" style="color:#8b9bad">${esc(target)}</a></div>`:""}
+        ${r.e? `<div class="ev">📌 ${esc(r.e)}</div>`:""}
+      </div>
+      <div class="acts">
+        ${link? `<a href="${esc(link)}" target="_blank" rel="noopener">${esWeb?"Abrir":"Abrir archivo"}</a>`:""}
+        ${esWeb? `<button onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(target).replace(/'/g,"\\'")}')">Copiar URL</button>`:""}
+      </div>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function renderStats(){
+  const por = c => DATOS.filter(r=>r.c===c).length;
+  const fechas = DATOS.map(r=>r.f).filter(Boolean).sort();
+  const rango = fechas.length ? `${fechas[0]} → ${fechas[fechas.length-1]}` : "—";
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><b>${DATOS.length}</b>elementos guardados</div>
+    <div class="stat"><b>${por("URL-Trabajo")}</b>URLs de trabajo</div>
+    <div class="stat"><b>${por("Manual")}</b>manuales</div>
+    <div class="stat"><b>${por("Imagen-Sistema")}</b>imágenes de sistemas</div>
+    <div class="stat"><b>${por("Personal")}</b>personales</div>
+    <div class="stat"><b>${por("Nota")}</b>notas / eventos</div>
+    <div class="stat"><b style="font-size:14px;padding-top:5px">${rango}</b>rango de fechas</div>`;
+}
+
+function renderChips(){
+  document.getElementById("chips").innerHTML = CATS.map(c=>
+    `<span class="chip ${activos.has(c)?"on":""}" data-c="${c}">${
+      c} <b>${DATOS.filter(r=>r.c===c).length}</b></span>`).join("");
+  document.querySelectorAll(".chip").forEach(el=>el.onclick=()=>{
+    const c = el.dataset.c;
+    activos.has(c)? activos.delete(c) : activos.add(c);
+    if(!activos.size) activos = new Set(CATS);
+    renderChips(); render();
+  });
+}
+
+document.getElementById("q").oninput = render;
+document.getElementById("sort").onchange = render;
+document.getElementById("group").onclick = e => {
+  agrupa = !agrupa;
+  e.target.textContent = "Agrupar por mes: " + (agrupa?"Sí":"No");
+  render();
+};
+
+const ult = DATOS.map(r=>r.f).filter(Boolean).sort().pop();
+document.getElementById("sub").textContent =
+  `${DATOS.length} elementos · última actualización: ${ult||"—"} · organiza por fecha y motivo`;
+document.getElementById("foot").textContent =
+  "Espacio personal · se genera desde registro.csv con _scripts\\Generar-Indice.ps1";
+
+renderStats(); renderChips(); render();
+</script>
+</body>
+</html>

@@ -18,6 +18,8 @@
 param(
   [string]$Mensaje = '',
   [switch]$Estado,
+  [switch]$Diagnostico,
+  [switch]$Abrir,
   [switch]$BorrarEnLaNube,
   [switch]$Reconfigurar
 )
@@ -62,7 +64,7 @@ $user = $cfg.usuario; $repo = $cfg.repo; $token = $cfg.token
 $hdrs = @{ Authorization = "token $token"; Accept = 'application/vnd.github+json'
            'User-Agent' = 'MiEspacio' }
 $webUrl  = "https://$user.github.io/$repo/"
-$gitUrl  = "https://$user.github.io/$repo/indice.html"
+$gitUrl  = $webUrl
 $apiRepo = "$apiRoot/repos/$user/$repo"
 
 function Llamar-Api([string]$metodo, [string]$url, $cuerpo = $null) {
@@ -92,6 +94,90 @@ if ($Estado) {
     $pags = Llamar-Api 'GET' "$apiRepo/pages"
     Write-Host ("Pages      : {0}" -f $(if($pags){'activa -> ' + $pags.html_url}else{'desactivada'}))
   }
+  return
+}
+
+if ($Diagnostico) {
+  Write-Host "========= DIAGNOSTICO PASO A PASO =========" -ForegroundColor Cyan
+
+  Write-Host "[1] Cuenta y token..."
+  try {
+    $yo = Llamar-Api 'GET' "$apiRoot/user"
+    Write-Host ("    OK  sesion valida como: {0}" -f $yo.login) -ForegroundColor Green
+    if ($yo.login -ne $user) {
+      Write-Host ("    AVISO: el usuario del config ('{0}') no coincide con el token ('{1}')." -f $user,$yo.login) -ForegroundColor Yellow
+      $user = $yo.login
+      $cfg.usuario = $yo.login; Guardar-Config $cfg
+      $webUrl = "https://$user.github.io/$repo/"; $gitUrl = "$webUrl" ; $apiRepo = "$apiRoot/repos/$user/$repo"
+      Write-Host "    Corregido automaticamente con el usuario del token."
+    }
+  } catch {
+    Write-Host "    FALLO: token invalido o sin permisos." -ForegroundColor Red
+    Write-Host "    Solucion: crea un token nuevo con permisos 'repo' y 'pages' y usa -Reconfigurar"
+    return
+  }
+
+  Write-Host "[2] Repositorio..."
+  $existe = Llamar-Api 'GET' $apiRepo
+  if (-not $existe) {
+    Write-Host "    FALLO: no existe $user/$repo -> por eso el 404." -ForegroundColor Red
+    Write-Host "    Solucion: ejecuta  .\Subir-A-La-Nube.ps1  (sin parametros) para crearlo y subir."
+    return
+  }
+  Write-Host ("    OK  existe ({0})" -f $(if($existe.private){'privado'}else{'publico'})) -ForegroundColor Green
+
+  Write-Host "[3] Contenido local..."
+  $hayIdx   = Test-Path (Join-Path $Raiz 'index.html')
+  $hayReg   = Test-Path (Join-Path $Raiz 'registro.csv')
+  Write-Host ("    index.html: {0}   registro.csv: {1}" -f $(if($hayIdx){'si'}else{'NO'}), $(if($hayReg){'si'}else{'NO'}))
+  if (-not $hayIdx -or -not $hayReg) {
+    Write-Host "    FALLO: falta el contenido. Ejecuta .\Generar-Indice.ps1" -ForegroundColor Red; return
+  }
+  Write-Host "    OK" -ForegroundColor Green
+
+  Write-Host "[4] Subida a GitHub..."
+  git -C $Raiz remote remove origin 2>$null | Out-Null
+  git -C $Raiz remote add origin "https://x-access-token:$token@github.com/$user/$repo.git" 2>&1 | Out-Null
+  git -C $Raiz add -A 2>&1 | Out-Null
+  $pend = @(git -C $Raiz status --porcelain)
+  if ($pend.Count -gt 0) {
+    git -C $Raiz commit -q -m ("Actualizacion " + (Get-Date -Format 'yyyy-MM-dd HH:mm')) 2>&1 | Out-Null
+    Write-Host ("    Subiendo {0} cambio(s)..." -f $pend.Count)
+  }
+  $pushOut = git -C $Raiz push -u origin main 2>&1 | Out-String
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "    FALLO al subir:" -ForegroundColor Red; Write-Host $pushOut
+    return
+  }
+  Write-Host "    OK  contenido en GitHub" -ForegroundColor Green
+
+  Write-Host "[5] Web publicada (GitHub Pages)..."
+  $pages = Llamar-Api 'GET' "$apiRepo/pages"
+  if (-not $pages) {
+    Write-Host "    Pages NO activada. Activando..." -ForegroundColor Yellow
+    try {
+      $null = Llamar-Api 'POST' "$apiRepo/pages" @{ source = @{ branch='main'; path='/' } }
+      Write-Host "    OK  Pages activada (tarda 1-3 minutos en estar visible)" -ForegroundColor Green
+    } catch {
+      Write-Host "    No se pudo activar sola: $_" -ForegroundColor Yellow
+      Write-Host "    Activala tu mismo en: https://github.com/$user/$repo/settings/pages"
+      Write-Host "      Source: Deploy from a branch | Branch: main | Folder: / (root) | Save"
+    }
+  } else { Write-Host "    OK  Pages activa" -ForegroundColor Green }
+
+  Write-Host "[6] Comprobando tu direccion..."
+  $codigo = $null
+  try { $r = Invoke-WebRequest -Uri $gitUrl -UseBasicParsing -MaximumRedirection 5; $codigo = [int]$r.StatusCode }
+  catch { $codigo = [int]$_.Exception.Response.StatusCode }
+  if ($codigo -eq 200) {
+    Write-Host "    OK  TU ESPACIO FUNCIONA -> $gitUrl" -ForegroundColor Green
+  } else {
+    Write-Host "    Aun responde ${codigo}: la publicacion tarda 1-3 minutos." -ForegroundColor Yellow
+    Write-Host "    Espera y vuelve a ejecutar:  .\Subir-A-La-Nube.ps1 -Diagnostico"
+  }
+
+  [IO.File]::WriteAllText((Join-Path $Raiz 'MI-DIRECCION.txt'), $gitUrl, [Text.UTF8Encoding]::new($true))
+  Write-Host "===========================================" -ForegroundColor Cyan
   return
 }
 
@@ -193,11 +279,19 @@ if (-not $pages) {
   Write-Host ("  Pages activa: {0}" -f $pages.html_url)
 }
 
+# Direccion real guardada en un archivo, para que no tengas que teclearla
+$dirFile = Join-Path $Raiz 'MI-DIRECCION.txt'
+[IO.File]::WriteAllText($dirFile, $gitUrl + "`r`n", [Text.UTF8Encoding]::new($true))
+
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host " TU ESPACIO ESTA EN LA NUBE" -ForegroundColor Green
 Write-Host "   Web    : $gitUrl"
 Write-Host "   Repo   : https://github.com/$user/$repo"
+Write-Host "   Guardada tambien en: MI-DIRECCION.txt" -ForegroundColor Cyan
 Write-Host " Abre esa direccion desde el celular o desde cualquier PC." -ForegroundColor Cyan
-Write-Host " (Puede tardar 1-2 minutos en refrescarse la primera vez.)"
+Write-Host " (Puede tardar 1-3 minutos en refrescarse la primera vez.)"
+Write-Host " Si da 404 otra vez:  .\Subir-A-La-Nube.ps1 -Diagnostico" -ForegroundColor Yellow
 Write-Host "====================================================" -ForegroundColor Cyan
+
+if ($Abrir) { Start-Process $gitUrl }

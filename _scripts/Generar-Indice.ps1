@@ -58,5 +58,9 @@ $html = $plantilla.Replace('__CATALOGO_JSON__', $json)
 $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 [System.IO.File]::WriteAllText($outPath, $html, $utf8Bom)
 
+# GitHub Pages solo sirve index.html en la raiz: lo generamos igual.
+$idxOut = Join-Path $Raiz 'index.html'
+[System.IO.File]::WriteAllText($idxOut, $html, $utf8Bom)
+
 Write-Host ("Indice generado: {0}" -f $outPath)
 Write-Host ("Elementos: {0}" -f @($objetos).Count)

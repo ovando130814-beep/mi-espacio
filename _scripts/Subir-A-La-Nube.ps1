@@ -2,18 +2,19 @@
   Sube TODO tu espacio (archivos + registro.csv + indice.html) a GitHub
   y lo deja publicado en la nube para verlo desde cualquier lugar.
 
-  El borrado en la nube funciona igual: primero borras en local con Eliminar.ps1
-  y luego ejecutas este script. Lo que ya no esta aqui, desaparece alla.
+  USA LLAVES SSH -> NO CADUCA NUNCA.
+  La web publicada no depende de ningun token: aunque no vuelvas a subir nada,
+  la pagina sigue en linea.
+
+  El borrado en la nube es igual: borras en local con Eliminar.ps1 y ejecutas
+  este script. Lo que ya no esta aqui, desaparece alla.
 
   Ejemplos:
-    .\Subir-A-La-Nube.ps1                       # sube todo (primera vez = crea todo)
-    .\Subir-A-La-Nube.ps1 -Mensaje "agrego manual"   # sube con mensaje propio
-    .\Subir-A-La-Nube.ps1 -Estado                # solo dice en que va
-    .\Subir-A-La-Nube.ps1 -BorrarEnLaNube        # avisa si algo se borro en local
-
-  La primera vez te pide: usuario de GitHub, nombre del repositorio y un
-  TOKEN (Personal Access Token con permiso 'repo'). Se guarda en
-  %USERPROFILE%\.miespacio-github.json  (fuera de la carpeta, no se sube).
+    .\Subir-A-La-Nube.ps1                       # sube todo
+    .\Subir-A-La-Nube.ps1 -Diagnostico          # te dice paso a paso que falla
+    .\Subir-A-La-Nube.ps1 -Estado                # direccion web y estado
+    .\Subir-A-La-Nube.ps1 -BorrarEnLaNube        # lista que se va a borrar alla
+    .\Subir-A-La-Nube.ps1 -Reconfigurar          # cambiar usuario/repositorio
 #>
 param(
   [string]$Mensaje = '',
@@ -24,12 +25,14 @@ param(
   [switch]$Reconfigurar
 )
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Continue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $Raiz      = Split-Path -Parent $PSScriptRoot
 $cfgPath   = Join-Path $env:USERPROFILE '.miespacio-github.json'
 $apiRoot   = 'https://api.github.com'
+$sshDir    = Join-Path $env:USERPROFILE '.ssh'
+$sshKey    = Join-Path $sshDir 'id_ed25519'
 
 function Guardar-Config($cfg) {
   $cfg | ConvertTo-Json -Depth 4 | Set-Content -Path $cfgPath -Encoding UTF8
@@ -38,36 +41,38 @@ function Leer-Config {
   if (Test-Path $cfgPath) { return Get-Content $cfgPath -Raw -Encoding UTF8 | ConvertFrom-Json }
   return $null
 }
-function Pedir($texto, $oculto = $false) {
-  if ($oculto) { return [Runtime.InteropServices.Marshal]::PtrToStringAuto(
-      [Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host $texto -AsSecureString))) }
-  $v = Read-Host $texto
-  return $v.Trim()
+function Pedir([string]$texto) { return ((Read-Host $texto).Trim()) }
+function Pedir-Secret([string]$texto) {
+  return [Runtime.InteropServices.Marshal]::PtrToStringAuto(
+    [Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host $texto -AsSecureString)))
 }
 
+# ----------------------------------------------------------------- 0. config
 $cfg = Leer-Config
 if ($Reconfigurar -and (Test-Path $cfgPath)) { Remove-Item $cfgPath -Force; $cfg = $null }
 
-if (-not $cfg -or -not $cfg.token -or -not $cfg.usuario) {
-  Write-Host "=== Configuracion inicial de GitHub ===" -ForegroundColor Cyan
-  Write-Host "Busca tu token en: GitHub > Settings > Developer settings > Personal access tokens"
-  Write-Host "(necesita el permiso 'repo' en un token classic)"
-  $usuario = Pedir 'Usuario de GitHub'
-  $repo    = Pedir 'Nombre del repositorio (ej. mi-espacio)'
-  $token   = Pedir 'Token (no se guarda en la carpeta ni se sube a GitHub)' $true
-  $cfg = [pscustomobject]@{ usuario = $usuario; repo = $repo; token = $token }
+if (-not $cfg -or -not $cfg.usuario -or -not $cfg.repo) {
+  Write-Host "=== Configuracion de GitHub (una sola vez) ===" -ForegroundColor Cyan
+  $usuario = Pedir 'Tu usuario de GitHub'
+  $repo    = Pedir 'Nombre del repositorio en minusculas (ej. mi-espacio)'
+  $cfg = [pscustomobject]@{ usuario = $usuario; repo = $repo; token = '' }
   Guardar-Config $cfg
-  Write-Host "Guardado en $cfgPath" -ForegroundColor Green
 }
 
-$user = $cfg.usuario; $repo = $cfg.repo; $token = $cfg.token
+$user = $cfg.usuario; $repo = $cfg.repo
+$token = ''
+if ($cfg.PSObject.Properties['token']) { $token = [string]$cfg.token }
+
+$webUrl = "https://$user.github.io/$repo/"
+$gitUrl = $webUrl
+$apiRepo = "$apiRoot/repos/$user/$repo"
+$sshRemote = "git@github.com:$user/$repo.git"
+
 $hdrs = @{ Authorization = "token $token"; Accept = 'application/vnd.github+json'
            'User-Agent' = 'MiEspacio' }
-$webUrl  = "https://$user.github.io/$repo/"
-$gitUrl  = $webUrl
-$apiRepo = "$apiRoot/repos/$user/$repo"
 
 function Llamar-Api([string]$metodo, [string]$url, $cuerpo = $null) {
+  if (-not $token) { return $null }
   $p = @{ Method = $metodo; Headers = $hdrs; Uri = $url }
   if ($cuerpo) { $p.Body = ($cuerpo | ConvertTo-Json -Depth 6); $p.ContentType = 'application/json' }
   try { return Invoke-RestMethod @p }
@@ -84,204 +89,230 @@ function Llamar-Api([string]$metodo, [string]$url, $cuerpo = $null) {
   }
 }
 
-if ($Estado) {
-  $existe = Llamar-Api 'GET' $apiRepo
-  if (-not $existe) { Write-Host 'El repositorio todavia NO existe en GitHub.' }
-  else {
-    Write-Host ("Repositorio: {0}/{1}" -f $user,$repo)
-    Write-Host ("Privacidad : {0}" -f $(if($existe.private){'privado'}else{'publico'}))
-    Write-Host ("Web        : {0}" -f $webUrl)
-    $pags = Llamar-Api 'GET' "$apiRepo/pages"
-    Write-Host ("Pages      : {0}" -f $(if($pags){'activa -> ' + $pags.html_url}else{'desactivada'}))
+# ----------------------------------------------------------------- SSH
+function Get-Estado-SSH {
+  $res = @{ clave = $false; registrada = $false; usuario = ''; pub = '' }
+  if (Test-Path $sshKey) {
+    $res.clave = $true
+    if (Test-Path "$sshKey.pub") { $res.pub = (Get-Content "$sshKey.pub" -Raw).Trim() }
+    $salida = ''
+    try { $salida = (& ssh -o BatchMode=yes -T git@github.com 2>&1 | Out-String) }
+    catch { $salida = $_.Exception.Message }
+    if ($salida -match 'Hi\s+([A-Za-z0-9-]+)!') {
+      $res.registrada = $true
+      $res.usuario = $Matches[1]
+    }
   }
+  return $res
+}
+
+function Asegurar-Clave {
+  if (-not (Test-Path $sshDir)) { New-Item -ItemType Directory -Force -Path $sshDir | Out-Null }
+  if (-not (Test-Path $sshKey)) {
+    Write-Host "  Creando llave SSH (no caduca nunca)..."
+    $null = & ssh-keygen -t ed25519 -C "miespacio-$user" -N '' -f $sshKey 2>&1
+    if (-not (Test-Path $sshKey)) { throw "No se pudo crear la llave. Revisa que git este instalado." }
+    Write-Host "  Llave creada en $sshKey" -ForegroundColor Green
+  }
+  # Evita la pregunta "Are you sure you want to continue connecting?"
+  $known = Join-Path $sshDir 'known_hosts'
+  $tiene = $false
+  if (Test-Path $known) { $tiene = (Get-Content $known -Raw) -match 'github\.com' }
+  if (-not $tiene) {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { $scan = & ssh-keyscan -T 5 github.com 2>$null } finally { $ErrorActionPreference = $prev }
+    if ($scan) { Add-Content -Path $known -Value $scan }
+  }
+}
+
+function Configurar-Remoto {
+  git -C $Raiz remote remove origin 2>&1 | Out-Null
+  git -C $Raiz remote add origin $sshRemote 2>&1 | Out-Null
+}
+
+# --------------------------------------------------------------- utilidades
+function Preparar-Git {
+  if (-not (Test-Path (Join-Path $Raiz '.git'))) {
+    git -C $Raiz init -b main 2>&1 | Out-Null
+    Write-Host "  Repositorio local creado."
+  }
+  if (-not (Test-Path (Join-Path $Raiz '.gitignore'))) {
+    Set-Content -Path (Join-Path $Raiz '.gitignore') -Encoding UTF8 -Value @(
+      '*.tmp','~$*','Thumbs.db','Desktop.ini','_tmp_check.txt')
+  }
+  if (-not (Test-Path (Join-Path $Raiz '.nojekyll'))) { Set-Content -Path (Join-Path $Raiz '.nojekyll') -Value '' }
+  $ident = git -C $Raiz config user.email
+  if (-not $ident) {
+    git -C $Raiz config user.name  "$user"
+    git -C $Raiz config user.email "$user@users.noreply.github.com"
+  }
+}
+
+function Obtener-Cambios {
+  git -C $Raiz add -A 2>&1 | Out-Null
+  return @(git -C $Raiz status --porcelain)
+}
+
+function Subir-Commits([string]$texto) {
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try { $push = git -C $Raiz push -u origin main 2>&1 | Out-String }
+  finally { $ErrorActionPreference = $prev }
+  if ($LASTEXITCODE -ne 0) { return $push }
+  return ''
+}
+
+# ================================================================ ESTADO
+if ($Estado) {
+  $ssh = Get-Estado-SSH
+  Write-Host ("Usuario    : {0}" -f $user)
+  Write-Host ("Repositorio: {0}" -f $repo)
+  Write-Host ("Direccion  : {0}" -f $webUrl)
+  if ($ssh.registrada) { Write-Host ("SSH        : OK ({0}) - no caduca" -f $ssh.usuario) -ForegroundColor Green }
+  elseif ($ssh.clave)  { Write-Host "SSH        : llave creada pero NO registrada en GitHub" -ForegroundColor Yellow }
+  else                 { Write-Host "SSH        : sin llave" -ForegroundColor Yellow }
+  $pags = Llamar-Api 'GET' "$apiRepo/pages"
+  if ($pags) { Write-Host ("Web        : activa -> {0}" -f $pags.html_url) -ForegroundColor Green }
+  else { Write-Host "Web        : sin datos (sin token o Pages sin activar)" }
   return
 }
 
+# ================================================================ DIAGNOSTICO
 if ($Diagnostico) {
   Write-Host "========= DIAGNOSTICO PASO A PASO =========" -ForegroundColor Cyan
 
-  Write-Host "[1] Cuenta y token..."
-  try {
-    $yo = Llamar-Api 'GET' "$apiRoot/user"
-    Write-Host ("    OK  sesion valida como: {0}" -f $yo.login) -ForegroundColor Green
-    if ($yo.login -ne $user) {
-      Write-Host ("    AVISO: el usuario del config ('{0}') no coincide con el token ('{1}')." -f $user,$yo.login) -ForegroundColor Yellow
-      $user = $yo.login
-      $cfg.usuario = $yo.login; Guardar-Config $cfg
-      $webUrl = "https://$user.github.io/$repo/"; $gitUrl = "$webUrl" ; $apiRepo = "$apiRoot/repos/$user/$repo"
-      Write-Host "    Corregido automaticamente con el usuario del token."
+  Write-Host "[1] Llave SSH (no caduca)..."
+  Asegurar-Clave
+  $ssh = Get-Estado-SSH
+  if ($ssh.registrada) {
+    if ($ssh.usuario -ne $user) {
+      Write-Host ("    AVISO: la llave pertenece a '{0}' y tu usuario es '{1}'." -f $ssh.usuario,$user) -ForegroundColor Yellow
+      $user = $ssh.usuario; $cfg.usuario = $user; Guardar-Config $cfg
+      $webUrl = "https://$user.github.io/$repo/"; $gitUrl = $webUrl
+      $apiRepo = "$apiRoot/repos/$user/$repo"; $sshRemote = "git@github.com:$user/$repo.git"
+      Write-Host "    Corregido automaticamente."
     }
-  } catch {
-    Write-Host "    FALLO: token invalido o sin permisos." -ForegroundColor Red
-    Write-Host "    Solucion: crea un token nuevo con el permiso 'repo' y usa -Reconfigurar"
+    Write-Host ("    OK  autentica como {0} - NO VENCE NUNCA" -f $ssh.usuario) -ForegroundColor Green
+  } else {
+    Write-Host "    FALLO: la llave no esta registrada en tu cuenta de GitHub." -ForegroundColor Red
+    Write-Host "    Copia esta linea entera:"
+    Write-Host ""
+    Write-Host ("      " + $ssh.pub) -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    y pegala aqui (una sola vez):" -ForegroundColor Cyan
+    Write-Host "      https://github.com/settings/ssh/new   (Title: MiEspacio, Key type: Authentication Key)"
+    Write-Host "    Luego vuelve a ejecutar este diagnostico."
     return
   }
 
-  Write-Host "[2] Repositorio..."
-  $existe = Llamar-Api 'GET' $apiRepo
-  if (-not $existe) {
-    Write-Host "    FALLO: no existe $user/$repo -> por eso el 404." -ForegroundColor Red
-    Write-Host "    Solucion: ejecuta  .\Subir-A-La-Nube.ps1  (sin parametros) para crearlo y subir."
-    return
+  Write-Host "[2] Contenido local..."
+  foreach ($n in @('index.html','registro.csv')) {
+    if (Test-Path (Join-Path $Raiz $n)) { Write-Host "    OK  $n" }
+    else { Write-Host "    FALLO: falta $n" -ForegroundColor Red; Write-Host "    Ejecuta .\Generar-Indice.ps1"; return }
   }
-  Write-Host ("    OK  existe ({0})" -f $(if($existe.private){'privado'}else{'publico'})) -ForegroundColor Green
 
-  Write-Host "[3] Contenido local..."
-  $hayIdx   = Test-Path (Join-Path $Raiz 'index.html')
-  $hayReg   = Test-Path (Join-Path $Raiz 'registro.csv')
-  Write-Host ("    index.html: {0}   registro.csv: {1}" -f $(if($hayIdx){'si'}else{'NO'}), $(if($hayReg){'si'}else{'NO'}))
-  if (-not $hayIdx -or -not $hayReg) {
-    Write-Host "    FALLO: falta el contenido. Ejecuta .\Generar-Indice.ps1" -ForegroundColor Red; return
-  }
-  Write-Host "    OK" -ForegroundColor Green
-
-  Write-Host "[4] Subida a GitHub..."
-  git -C $Raiz remote remove origin 2>$null | Out-Null
-  git -C $Raiz remote add origin "https://x-access-token:$token@github.com/$user/$repo.git" 2>&1 | Out-Null
-  git -C $Raiz add -A 2>&1 | Out-Null
-  $pend = @(git -C $Raiz status --porcelain)
+  Write-Host "[3] Subiendo a GitHub..."
+  Preparar-Git; Configurar-Remoto
+  $pend = Obtener-Cambios
   if ($pend.Count -gt 0) {
     git -C $Raiz commit -q -m ("Actualizacion " + (Get-Date -Format 'yyyy-MM-dd HH:mm')) 2>&1 | Out-Null
-    Write-Host ("    Subiendo {0} cambio(s)..." -f $pend.Count)
+    Write-Host ("    {0} cambio(s) para subir" -f $pend.Count)
   }
-  $pushOut = git -C $Raiz push -u origin main 2>&1 | Out-String
-  if ($LASTEXITCODE -ne 0) {
-    Write-Host "    FALLO al subir:" -ForegroundColor Red; Write-Host $pushOut
+  $err = Subir-Commits ''
+  if ($err) {
+    Write-Host "    FALLO al subir:" -ForegroundColor Red; Write-Host $err
+    if ($err -match 'Permission denied|Could not read from remote|Repository not found|does not appear to be a git repository') {
+      Write-Host "    Causa probable: el repositorio no existe o la llave no esta registrada."
+      Write-Host "    Crea el repositorio una vez en: https://github.com/new  (nombre: $repo, Public)"
+      Write-Host "    y registra la llave en:          https://github.com/settings/ssh/new"
+    }
     return
   }
   Write-Host "    OK  contenido en GitHub" -ForegroundColor Green
 
-  Write-Host "[5] Web publicada (GitHub Pages)..."
+  Write-Host "[4] Web publicada (GitHub Pages)..."
   $pages = Llamar-Api 'GET' "$apiRepo/pages"
   if (-not $pages) {
-    Write-Host "    Pages NO activada. Activando..." -ForegroundColor Yellow
-    try {
-      $null = Llamar-Api 'POST' "$apiRepo/pages" @{ source = @{ branch='main'; path='/' } }
-      Write-Host "    OK  Pages activada (tarda 1-3 minutos en estar visible)" -ForegroundColor Green
-    } catch {
-      Write-Host "    No se pudo activar sola: $_" -ForegroundColor Yellow
-      Write-Host "    Activala tu mismo en: https://github.com/$user/$repo/settings/pages"
+    if (-not $token) {
+      Write-Host "    Sin token no puedo activarla sola (se hace una vez a mano):" -ForegroundColor Yellow
+      Write-Host "      https://github.com/$user/$repo/settings/pages"
       Write-Host "      Source: Deploy from a branch | Branch: main | Folder: / (root) | Save"
+    } else {
+      Write-Host "    Activando Pages..." -ForegroundColor Yellow
+      try {
+        $null = Llamar-Api 'POST' "$apiRepo/pages" @{ source = @{ branch='main'; path='/' } }
+        Write-Host "    OK  Pages activada" -ForegroundColor Green
+      } catch {
+        Write-Host "    Activala en: https://github.com/$user/$repo/settings/pages" -ForegroundColor Yellow
+      }
     }
   } else { Write-Host "    OK  Pages activa" -ForegroundColor Green }
 
-  Write-Host "[6] Comprobando tu direccion..."
+  Write-Host "[5] Comprobando tu direccion..."
   $codigo = $null
   try { $r = Invoke-WebRequest -Uri $gitUrl -UseBasicParsing -MaximumRedirection 5; $codigo = [int]$r.StatusCode }
   catch { $codigo = [int]$_.Exception.Response.StatusCode }
   if ($codigo -eq 200) {
     Write-Host "    OK  TU ESPACIO FUNCIONA -> $gitUrl" -ForegroundColor Green
   } else {
-    Write-Host "    Aun responde ${codigo}: la publicacion tarda 1-3 minutos." -ForegroundColor Yellow
+    Write-Host "    Responde ${codigo}: la publicacion tarda 1-3 minutos." -ForegroundColor Yellow
     Write-Host "    Espera y vuelve a ejecutar:  .\Subir-A-La-Nube.ps1 -Diagnostico"
   }
-
-  [IO.File]::WriteAllText((Join-Path $Raiz 'MI-DIRECCION.txt'), $gitUrl, [Text.UTF8Encoding]::new($true))
+  [IO.File]::WriteAllText((Join-Path $Raiz 'MI-DIRECCION.txt'), $gitUrl + "`r`n", [Text.UTF8Encoding]::new($true))
   Write-Host "===========================================" -ForegroundColor Cyan
   return
 }
 
-# ---------------------------------------------------------- 1. repositorio
-Write-Host "[1/5] Comprobando repositorio..." -ForegroundColor Cyan
-$existe = Llamar-Api 'GET' $apiRepo
-if (-not $existe) {
-  Write-Host "  Creando $user/$repo (publico)..."
-  $null = Llamar-Api 'POST' "$apiRoot/user/repos" @{
-    name = $repo; private = $false; has_issues = $false; has_wiki = $false
-    description = 'Mi espacio personal: archivos, URLs, manuales y notas, ordenados por fecha y motivo.'
-  }
-  Write-Host "  Repositorio creado." -ForegroundColor Green
-} else {
-  if ($existe.private) { Write-Host "  El repositorio es PRIVADO: la web no sera visible sin inicio de sesion." -ForegroundColor Yellow }
+# ================================================================ SUBIR
+Write-Host "[1/4] Llave SSH..." -ForegroundColor Cyan
+Asegurar-Clave
+$ssh = Get-Estado-SSH
+if (-not $ssh.registrada) {
+  Write-Host "  Tu llave aun no esta registrada en GitHub (se hace UNA vez y no vence nunca)." -ForegroundColor Yellow
+  Write-Host ""
+  Write-Host "  1. Copia esta linea entera:" -ForegroundColor Cyan
+  Write-Host ("       " + $ssh.pub) -ForegroundColor Yellow
+  Write-Host "  2. Abre: https://github.com/settings/ssh/new" -ForegroundColor Cyan
+  Write-Host "     Title: MiEspacio   |   Key type: Authentication Key   |   pega y pulsa Add key"
+  Write-Host "  3. Vuelve a ejecutar este comando." -ForegroundColor Cyan
+  return
 }
+Write-Host ("  OK {0} (no caduca)" -f $ssh.usuario) -ForegroundColor Green
 
-# ---------------------------------------------------------- 2. git local
-Write-Host "[2/5] Preparando git local..." -ForegroundColor Cyan
-$gitDir = Join-Path $Raiz '.git'
-if (-not (Test-Path $gitDir)) {
-  git -C $Raiz init -b main 2>&1 | Out-Null
-  Write-Host "  Repositorio local creado."
+Write-Host "[2/4] Preparando git..." -ForegroundColor Cyan
+Preparar-Git
+Configurar-Remoto
+
+Write-Host "[3/4] Analizando cambios..." -ForegroundColor Cyan
+$pendientes = Obtener-Cambios
+$borrar = @($pendientes | Where-Object { $_ -match '^\s*D' })
+if ($BorrarEnLaNube -and $borrar.Count -gt 0) {
+  Write-Host "  Se borraran de la nube $($borrar.Count) archivo(s):" -ForegroundColor Yellow
+  $borrar | ForEach-Object { Write-Host "    $_" }
 }
-if (-not (Test-Path (Join-Path $Raiz '.gitignore'))) {
-  Set-Content -Path (Join-Path $Raiz '.gitignore') -Encoding UTF8 -Value @(
-    '*.tmp','~$*','Thumbs.db','Desktop.ini','_tmp_check.txt')
-}
-if (-not (Test-Path (Join-Path $Raiz '.nojekyll'))) {
-  Set-Content -Path (Join-Path $Raiz '.nojekyll') -Value ''
-}
-
-$ident = git -C $Raiz config user.email
-if (-not $ident) {
-  git -C $Raiz config user.name  "$user"
-  git -C $Raiz config user.email "$user@users.noreply.github.com"
-}
-
-# remoto con token (solo en .git/config local, nunca se sube)
-git -C $Raiz remote remove origin 2>$null | Out-Null
-git -C $Raiz remote add origin "https://x-access-token:$token@github.com/$user/$repo.git" 2>&1 | Out-Null
-
-# ---------------------------------------------------------- 3. cambios
-Write-Host "[3/5] Analizando cambios..." -ForegroundColor Cyan
-git -C $Raiz add -A 2>&1 | Out-Null
-$status = git -C $Raiz status --porcelain
-$pendientes = @($status)
-$archivosSubidos = @($status | Where-Object { $_ -match '^\s*D' }).Count
-
-if ($BorrarEnLaNube -and $archivosSubidos -gt 0) {
-  Write-Host "  Se borraran de la nube $archivosSubidos archivo(s):" -ForegroundColor Yellow
-  $status | Where-Object { $_ -match '^\s*D' } | ForEach-Object { Write-Host "    $_" }
-}
-
 if ($pendientes.Count -eq 0) {
   Write-Host "  Sin cambios: la nube ya esta al dia." -ForegroundColor Green
-  $nada = $true
 } else {
-  Write-Host ("  {0} cambio(s) pendiente(s):" -f $pendientes.Count)
+  Write-Host ("  {0} cambio(s):" -f $pendientes.Count)
   $pendientes | Select-Object -First 25 | ForEach-Object { Write-Host "    $_" }
   if ($pendientes.Count -gt 25) { Write-Host "    ... y mas" }
-}
 
-# ---------------------------------------------------------- 4. subir
-if (-not $nada) {
-  if (-not $Mensaje) {
-    $Mensaje = Read-Host 'Mensaje del cambio (Enter para uno automatico)'
-  }
-  if (-not $Mensaje) {
-    $Mensaje = "Actualizacion " + (Get-Date -Format 'yyyy-MM-dd HH:mm')
-  }
-  Write-Host "[4/5] Subiendo a GitHub..." -ForegroundColor Cyan
-  git -C $Raiz commit -m $Mensaje 2>&1 | Out-Null
-  $push = git -C $Raiz push -u origin main 2>&1 | Out-String
-  if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR al subir:" -ForegroundColor Red
-    Write-Host $push
-    Write-Host "Revisa el token (permiso 'repo') o ejecuta con -Reconfigurar."
+  if (-not $Mensaje) { $Mensaje = Read-Host 'Mensaje del cambio (Enter para automatico)' }
+  if (-not $Mensaje) { $Mensaje = "Actualizacion " + (Get-Date -Format 'yyyy-MM-dd HH:mm') }
+
+  Write-Host "[4/4] Subiendo..." -ForegroundColor Cyan
+  git -C $Raiz commit -q -m $Mensaje 2>&1 | Out-Null
+  $err = Subir-Commits $Mensaje
+  if ($err) {
+    Write-Host "ERROR al subir:" -ForegroundColor Red; Write-Host $err
+    Write-Host "Ejecuta:  .\Subir-A-La-Nube.ps1 -Diagnostico"
     return
   }
   Write-Host "  Subido." -ForegroundColor Green
-} else {
-  Write-Host "[4/5] Nada que subir." -ForegroundColor Cyan
 }
 
-# ---------------------------------------------------------- 5. publicar web
-Write-Host "[5/5] Comprobando la web publicada..." -ForegroundColor Cyan
-$pages = Llamar-Api 'GET' "$apiRepo/pages"
-if (-not $pages) {
-  Write-Host "  Activando GitHub Pages..."
-  try {
-    $null = Llamar-Api 'POST' "$apiRepo/pages" @{ source = @{ branch = 'main'; path = '/' } }
-    Write-Host "  Pages activada." -ForegroundColor Green
-  } catch {
-    Write-Host "  No se pudo activar automaticamente: $_" -ForegroundColor Yellow
-    Write-Host "  Activala en: https://github.com/$user/$repo/settings/pages (rama: main, carpeta: /)"
-  }
-} else {
-  Write-Host ("  Pages activa: {0}" -f $pages.html_url)
-}
-
-# Direccion real guardada en un archivo, para que no tengas que teclearla
-$dirFile = Join-Path $Raiz 'MI-DIRECCION.txt'
-[IO.File]::WriteAllText($dirFile, $gitUrl + "`r`n", [Text.UTF8Encoding]::new($true))
+[IO.File]::WriteAllText((Join-Path $Raiz 'MI-DIRECCION.txt'), $gitUrl + "`r`n", [Text.UTF8Encoding]::new($true))
 
 Write-Host ""
 Write-Host "====================================================" -ForegroundColor Cyan
@@ -289,9 +320,8 @@ Write-Host " TU ESPACIO ESTA EN LA NUBE" -ForegroundColor Green
 Write-Host "   Web    : $gitUrl"
 Write-Host "   Repo   : https://github.com/$user/$repo"
 Write-Host "   Guardada tambien en: MI-DIRECCION.txt" -ForegroundColor Cyan
-Write-Host " Abre esa direccion desde el celular o desde cualquier PC." -ForegroundColor Cyan
-Write-Host " (Puede tardar 1-3 minutos en refrescarse la primera vez.)"
-Write-Host " Si da 404 otra vez:  .\Subir-A-La-Nube.ps1 -Diagnostico" -ForegroundColor Yellow
+Write-Host " (La web no se cae aunque dejes de subir: solo con la cuenta de GitHub)" -ForegroundColor Cyan
+Write-Host " Si da 404:  .\Subir-A-La-Nube.ps1 -Diagnostico" -ForegroundColor Yellow
 Write-Host "====================================================" -ForegroundColor Cyan
 
 if ($Abrir) { Start-Process $gitUrl }

@@ -12,7 +12,7 @@
     .\Subir-A-La-Nube.ps1 -BorrarEnLaNube        # avisa si algo se borro en local
 
   La primera vez te pide: usuario de GitHub, nombre del repositorio y un
-  TOKEN (Personal Access Token con permisos repo + pages). Se guarda en
+  TOKEN (Personal Access Token con permiso 'repo'). Se guarda en
   %USERPROFILE%\.miespacio-github.json  (fuera de la carpeta, no se sube).
 #>
 param(
@@ -51,7 +51,7 @@ if ($Reconfigurar -and (Test-Path $cfgPath)) { Remove-Item $cfgPath -Force; $cfg
 if (-not $cfg -or -not $cfg.token -or -not $cfg.usuario) {
   Write-Host "=== Configuracion inicial de GitHub ===" -ForegroundColor Cyan
   Write-Host "Busca tu token en: GitHub > Settings > Developer settings > Personal access tokens"
-  Write-Host "(necesita los permisos 'repo' y 'pages')"
+  Write-Host "(necesita el permiso 'repo' en un token classic)"
   $usuario = Pedir 'Usuario de GitHub'
   $repo    = Pedir 'Nombre del repositorio (ej. mi-espacio)'
   $token   = Pedir 'Token (no se guarda en la carpeta ni se sube a GitHub)' $true
@@ -113,7 +113,7 @@ if ($Diagnostico) {
     }
   } catch {
     Write-Host "    FALLO: token invalido o sin permisos." -ForegroundColor Red
-    Write-Host "    Solucion: crea un token nuevo con permisos 'repo' y 'pages' y usa -Reconfigurar"
+    Write-Host "    Solucion: crea un token nuevo con el permiso 'repo' y usa -Reconfigurar"
     return
   }
 
@@ -255,7 +255,7 @@ if (-not $nada) {
   if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR al subir:" -ForegroundColor Red
     Write-Host $push
-    Write-Host "Revisa el token (permisos repo y pages) o ejecuta con -Reconfigurar."
+    Write-Host "Revisa el token (permiso 'repo') o ejecuta con -Reconfigurar."
     return
   }
   Write-Host "  Subido." -ForegroundColor Green

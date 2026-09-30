@@ -35,7 +35,8 @@ o desde cualquier PC**. Todo lo que subas, y todo lo que borres, se refleja all�
 1. Entra a <https://github.com> → tu foto → **Settings**
 2. **Developer settings** → **Personal access tokens** → **Tokens (classic)**
 3. **Generate new token (classic)**
-4. Marca los permisos: **repo** y **pages**
+4. Marca el permiso **repo** (el que controla tus repositorios; con eso la web
+   de GitHub Pages también funciona)
 5. Cópialo (empieza con `ghp_...`) y guárdalo en un lugar seguro
 
 ### 2. Una sola vez: configurar y publicar

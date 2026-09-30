@@ -7,24 +7,26 @@
 <style>
   :root{
     --bg:#0f141a; --panel:#161d26; --panel2:#1c2531; --line:#2a3644;
-    --txt:#e6edf3; --muted:#8b9bad; --accent:#4da3ff; --ok:#3fb950;
+    --txt:#e6edf3; --muted:#8b9bad; --accent:#4da3ff; --ok:#3fb950; --mal:#ff7b72;
     --c1:#4da3ff; --c2:#f0a742; --c3:#b083f0; --c4:#3fb950; --c5:#ff7b72;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--txt);
        font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-  header{position:sticky;top:0;z-index:10;background:rgba(15,20,26,.95);
+  header{position:sticky;top:0;z-index:10;background:rgba(15,20,26,.96);
          backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:14px 18px}
   h1{margin:0;font-size:19px;letter-spacing:.3px}
   h1 span{color:var(--accent)}
   .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
-  input[type=search]{flex:1;min-width:190px;background:var(--panel2);color:var(--txt);
+  input[type=search]{flex:1;min-width:170px;background:var(--panel2);color:var(--txt);
     border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:14px;outline:none}
   input[type=search]:focus{border-color:var(--accent)}
   select,button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
     border-radius:8px;padding:9px 11px;font-size:13.5px;cursor:pointer}
   button:hover,select:hover{border-color:var(--accent)}
+  button.pri{background:var(--accent);border-color:var(--accent);color:#06121f;font-weight:600}
+  button.pri:hover{filter:brightness(1.1)}
   .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
   .chip{border:1px solid var(--line);background:var(--panel2);border-radius:999px;
         padding:5px 13px;font-size:12.5px;cursor:pointer;color:var(--muted);user-select:none}
@@ -62,15 +64,44 @@
   .meta .k{color:#6f8296;font-weight:600}
   .ev{display:inline-block;background:var(--panel2);border:1px dashed var(--line);
       border-radius:6px;padding:1px 8px;font-size:12px;color:#c6d3e1;margin-top:6px}
-  .acts{display:flex;flex-direction:column;gap:6px}
+  .acts{display:flex;flex-direction:column;gap:6px;min-width:104px}
   .acts a,.acts button{font-size:12px;padding:5px 10px;border-radius:7px;text-decoration:none;
       text-align:center;white-space:nowrap;border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
   .acts a:hover{border-color:var(--accent);color:var(--accent)}
+  .acts button.del:hover{border-color:var(--mal);color:var(--mal)}
+  .acts button.mod:hover{border-color:var(--ok);color:var(--ok)}
   .empty{text-align:center;color:var(--muted);padding:55px 10px;font-size:14.5px}
   footer{color:#5c6c7e;font-size:12px;text-align:center;padding:18px}
+  /* modal */
+  .fondo{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;z-index:50;
+         align-items:center;justify-content:center;padding:16px}
+  .fondo.on{display:flex}
+  .caja{background:var(--panel);border:1px solid var(--line);border-radius:13px;
+        width:100%;max-width:540px;max-height:92vh;overflow:auto;padding:18px 20px}
+  .caja h2{margin:0 0 4px;font-size:17px}
+  .caja .ayuda{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+  .campo{margin-bottom:11px}
+  .campo label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
+  .campo input,.campo select,.campo textarea{width:100%;background:var(--panel2);color:var(--txt);
+    border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit}
+  .campo textarea{min-height:62px;resize:vertical}
+  .campo input:focus,.campo textarea:focus,.campo select:focus{outline:none;border-color:var(--accent)}
+  .fila{display:flex;gap:10px}.fila .campo{flex:1}
+  .btns{display:flex;gap:9px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+  .btns button{padding:9px 16px}
+  .aviso{border:1px dashed var(--line);background:var(--panel2);border-radius:9px;
+         padding:11px 13px;font-size:13px;color:#c6d3e1;margin-top:10px}
+  .aviso b{color:var(--txt)}
+  #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:60;
+    background:#12331f;border:1px solid var(--ok);color:#b7f0c6;padding:11px 18px;
+    border-radius:9px;font-size:13.5px;display:none;max-width:92vw;text-align:center}
+  #toast.mal{background:#3a1512;border-color:var(--mal);color:#ffd2cd}
+  .oculto{display:none!important}
   @media(max-width:640px){
     .date{min-width:64px}.card{flex-direction:column;gap:8px}
-    .acts{flex-direction:row}.acts a,.acts button{flex:1}
+    .acts{flex-direction:row;flex-wrap:wrap;min-width:0}
+    .acts a,.acts button{flex:1;min-width:88px}
+    .fila{flex-direction:column;gap:0}
   }
 </style>
 </head>
@@ -87,6 +118,8 @@
       <option value="categoria-asc">Por categoría</option>
     </select>
     <button id="group">Agrupar por mes: Sí</button>
+    <button class="pri" id="btnAdd">+ Agregar</button>
+    <button id="btnConn">Conectar</button>
   </div>
   <div class="chips" id="chips"></div>
 </header>
@@ -97,38 +130,240 @@
   <footer id="foot"></footer>
 </main>
 
+<!-- ======================= MODAL FORMULARIO ======================= -->
+<div class="fondo" id="fondoForm">
+  <div class="caja">
+    <h2 id="formTitulo">Agregar elemento</h2>
+    <div class="ayuda">Todo lo que guardes queda con su fecha y el motivo por el que lo guardas.</div>
+
+    <div class="campo"><label>Título *</label><input id="f_titulo" placeholder="Ej. Manual de inventario"></div>
+    <div class="fila">
+      <div class="campo"><label>Fecha</label><input id="f_fecha" type="date"></div>
+      <div class="campo"><label>Categoría</label>
+        <select id="f_cat">
+          <option>Personal</option><option>URL-Trabajo</option><option>Manual</option>
+          <option>Imagen-Sistema</option><option>Nota</option>
+        </select>
+      </div>
+    </div>
+    <div class="campo"><label>Motivo (¿por qué lo guardas?)</label><textarea id="f_motivo" placeholder="Ej. Lo necesito para el inventario anual"></textarea></div>
+    <div class="campo"><label>Evento / situación</label><input id="f_evento" placeholder="Ej. Proyecto de infraestructura"></div>
+    <div class="campo"><label>URL (si es un enlace)</label><input id="f_url" placeholder="https://…"></div>
+    <div class="campo"><label>Archivo (si está en tu espacio, es una ruta relativa)</label><input id="f_ubi" placeholder="03-Manuales/manual.pdf"></div>
+
+    <div id="formSinToken" class="aviso oculto">
+      <b>Necesitas conectar tu cuenta de GitHub</b> para guardar cambios desde aquí.
+      Pulsa <b>Conectar</b> en la parte superior y pega tu token.
+    </div>
+
+    <div class="btns">
+      <button id="fCancelar">Cancelar</button>
+      <button class="pri" id="fGuardar">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= MODAL CONEXIÓN ======================= -->
+<div class="fondo" id="fondoConn">
+  <div class="caja">
+    <h2>Conectar con GitHub</h2>
+    <div class="ayuda">Para que <b>Modificar</b>, <b>Eliminar</b> y <b>Agregar</b> funcionen desde
+      esta web, se necesita un token de GitHub que solo se guarda <b>en este navegador</b>.</div>
+
+    <div class="campo"><label>Token de GitHub (Personal Access Token)</label>
+      <input id="c_token" type="password" placeholder="ghp_…"></div>
+    <div class="campo"><label>Repositorio</label>
+      <input id="c_repo" placeholder="usuario/mi-espacio" disabled></div>
+
+    <div class="aviso">
+      <b>Para crearlo (una vez):</b> github.com → Settings → Developer settings →
+      Personal access tokens → Tokens (classic) → <b>Generate new token</b><br>
+      · Caducidad: <b>No expiration</b> (para que nunca deje de funcionar)<br>
+      · Scopes: marca <b>public_repo</b> (tu repositorio es público)<br>
+      <b>No lo pegues en ningún otro sitio</b>; aquí solo se guarda en este equipo.
+    </div>
+
+    <div class="btns">
+      <button id="cSalir">Cancelar</button>
+      <button class="oculto" id="cOlvidar">Borrar token de este equipo</button>
+      <button class="pri" id="cGuardar">Conectar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= MODAL CONFIRMAR ======================= -->
+<div class="fondo" id="fondoBorra">
+  <div class="caja">
+    <h2>Eliminar elemento</h2>
+    <div class="ayuda" id="b_texto">¿Seguro?</div>
+    <div class="campo" id="b_wrapArch">
+      <label><input type="checkbox" id="b_archivo" checked style="width:auto"> También borrar el archivo físico del espacio</label>
+    </div>
+    <div class="btns">
+      <button id="bCancelar">Cancelar</button>
+      <button class="pri" id="bAceptar" style="background:#c5372c;border-color:#c5372c;color:#fff">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script>
-const DATOS = [{"f":"2026-09-12","c":"Manual","t":"[Ejemplo] Manual de inventario de equipos","u":"https://ejemplo.com/manual-inventario.pdf","m":"Lo necesito para el inventario anual de la sede","e":"Inventario 2026"},{"f":"2026-09-20","c":"URL-Trabajo","t":"[Ejemplo] Portal de planillas en linea","u":"https://ejemplo.com/planillas","m":"Consulta mensual de planillas del personal","e":"Cierre mensual"},{"f":"2026-09-28","c":"Imagen-Sistema","t":"[Ejemplo] Captura de error al sincronizar tabletas","u":"04-Imagenes-Sistemas/123.jpg","m":"Evidencia del fallo para escalar al soporte","e":"Incidente de sincronizacion"},{"f":"2026-09-30","c":"Nota","t":"[Ejemplo] Cambio en el procedimiento de actas","u":"","m":"Para no tener que volver a investigar el proceso cada año","e":"Reunión con coordinación académica"}];
+let DATOS = [{"f":"2026-09-12","c":"Manual","t":"[Ejemplo] Manual de inventario de equipos","u":"https://ejemplo.com/manual-inventario.pdf","m":"Lo necesito para el inventario anual de la sede","e":"Inventario 2026"},{"f":"2026-09-20","c":"URL-Trabajo","t":"[Ejemplo] Portal de planillas en linea","u":"https://ejemplo.com/planillas","m":"Consulta mensual de planillas del personal","e":"Cierre mensual"},{"f":"2026-09-28","c":"Imagen-Sistema","t":"[Ejemplo] Captura de error al sincronizar tabletas","u":"04-Imagenes-Sistemas/123.jpg","m":"Evidencia del fallo para escalar al soporte","e":"Incidente de sincronizacion"},{"f":"2026-09-30","c":"Nota","t":"[Ejemplo] Cambio en el procedimiento de actas","u":"","m":"Para no tener que volver a investigar el proceso cada año","e":"Reunión con coordinación académica"}];
 
 const CATS = ["Personal","URL-Trabajo","Manual","Imagen-Sistema","Nota"];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
                "septiembre","octubre","noviembre","diciembre"];
+const ENC = ["Fecha","Categoria","Titulo","Tipo","Ubicacion","URL","Motivo","Evento"];
 let activos = new Set(CATS);
 let agrupa = true;
+let editando = null;      // índice en DATOS al modificar, null al agregar
+let borrando = null;      // índice a eliminar
 
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const esUrl = u => /^https?:\/\//i.test(u||"");
-const esImagen = (u,t) => /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(u||"") ||
-  (/imagen/i.test(t||"") && /\.(png|jpe?g|webp)$/i.test(u||""));
 
+/* ---------------------------------------------------------------- red */
+function repoInfo(){
+  const h = location.hostname;
+  if(/\.github\.io$/i.test(h)){
+    const owner = h.replace(/\.github\.io$/i,"");
+    const partes = location.pathname.split("/").filter(Boolean);
+    return {owner, repo: partes[0]||""};
+  }
+  return null;
+}
+const TK = "miespacio_token";
+const token = () => localStorage.getItem(TK) || "";
+
+async function gh(metodo, ruta, cuerpo){
+  const t = token();
+  if(!t) throw new Error("Sin token: pulsa Conectar");
+  const op = {method:metodo, headers:{Authorization:"token "+t, Accept:"application/vnd.github+json"}};
+  if(cuerpo){ op.headers["Content-Type"]="application/json"; op.body=JSON.stringify(cuerpo); }
+  const r = await fetch("https://api.github.com"+ruta, op);
+  if(!r.ok){
+    let txt = await r.text();
+    try{ txt = JSON.parse(txt).message || txt; }catch(e){}
+    throw new Error("GitHub "+r.status+": "+txt);
+  }
+  return r.status===204 ? null : r.json();
+}
+
+function aBase64(s){
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function deBase64(b){
+  const bin = atob(b||"");
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+/* ---------------------------------------------------------------- CSV */
+function parseCSV(texto){
+  const filas=[]; let fila=[], campo="", comillas=false;
+  for(let i=0;i<texto.length;i++){
+    const c = texto[i];
+    if(comillas){
+      if(c === '"'){ if(texto[i+1] === '"'){ campo+='"'; i++; } else comillas=false; }
+      else campo += c;
+    } else {
+      if(c === '"') comillas = true;
+      else if(c === ","){ fila.push(campo); campo=""; }
+      else if(c === "\n"){ fila.push(campo); filas.push(fila); fila=[]; campo=""; }
+      else if(c !== "\r") campo += c;
+    }
+  }
+  if(campo !== "" || fila.length){ fila.push(campo); filas.push(fila); }
+  const cab = filas.shift() || [];
+  return filas.filter(f => f.some(x => (x||"").trim() !== "")).map(f => {
+    const o = {}; cab.forEach((h,i) => o[(h||"").trim()] = f[i] || ""); return o;
+  });
+}
+function aCSV(lista){
+  const q = v => '"' + String(v??"").replace(/"/g,'""') + '"';
+  return ENC.join(",") + "\r\n" +
+         lista.map(o => ENC.map(h => q(o[h])).join(",")).join("\r\n") + "\r\n";
+}
+
+/* -------------------------------------------------- guardar en GitHub */
+async function guardarCSV(nuevo, mensaje){
+  const info = repoInfo();
+  if(!info) throw new Error("No se detecto el repositorio");
+  const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv";
+  const actual = await gh("GET", ruta+"?ref=main");
+  await gh("PUT", ruta, {
+    message: mensaje,
+    content: aBase64(aCSV(nuevo)),
+    branch: "main",
+    sha: actual ? actual.sha : undefined
+  });
+  // vuelve a descargar lo que quedo guardado
+  const tras = await gh("GET", ruta+"?ref=main");
+  return parseCSV(deBase64(tras.content));
+}
+
+async function borrarArchivo(rutaRel){
+  const info = repoInfo();
+  const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/"+encodeURI(rutaRel);
+  const f = await gh("GET", ruta+"?ref=main");
+  await gh("DELETE", ruta, {message:"Borra archivo: "+rutaRel, sha:f.sha, branch:"main"});
+}
+
+async function bajarCSV(){
+  if(location.protocol !== "http:" && location.protocol !== "https:") return null;
+  try{
+    const r = await fetch("registro.csv", {cache:"no-store"});
+    if(!r.ok) return null;
+    return parseCSV(await r.text());
+  }catch(e){ return null; }
+}
+
+function aObj(fila){
+  return {
+    f: (fila.Fecha||"").trim(),
+    c: (fila.Categoria||"Nota").trim(),
+    t: (fila.Titulo||"").trim(),
+    u: (fila.Ubicacion||"").trim(),
+    m: (fila.Motivo||"").trim(),
+    e: (fila.Evento||"").trim()
+  };
+}
+function aFila(o){
+  const ext = (o.u||"").split("?")[0].split(".").pop();
+  return {
+    Fecha:o.f, Categoria:o.c, Titulo:o.t,
+    Tipo: (o.u && o.u.indexOf(".")>0 && !esUrl(o.u)) ? ext : (esUrl(o.u)? (o.u.split("/").pop().split(".").pop()||"") : ""),
+    Ubicacion:o.u, URL: esUrl(o.u)? o.u : "", Motivo:o.m, Evento:o.e
+  };
+}
+
+/* ---------------------------------------------------------------- UI */
+function toast(txt, mal){
+  const t = document.getElementById("toast");
+  t.textContent = txt;
+  t.className = mal ? "mal" : "";
+  t.style.display = "block";
+  clearTimeout(t._h);
+  t._h = setTimeout(()=> t.style.display="none", mal?6000:3500);
+}
 function fmtFecha(f){
   const [y,m,d] = (f||"").split("-").map(Number);
   if(!y) return {dia:"—",mes:"—",full:"sin fecha",key:""};
   return {dia:String(d).padStart(2,"0"), mes:MESES[m-1].slice(0,3).toUpperCase(),
           full:`${d} de ${MESES[m-1]} de ${y}`, key:`${y}-${String(m).padStart(2,"0")}`};
 }
-function mesLabel(k){
-  const [y,m] = k.split("-").map(Number);
-  return `${MESES[m-1]} de ${y}`;
-}
+const mesLabel = k => { const [y,m]=k.split("-").map(Number); return `${MESES[m-1]} de ${y}`; };
 
 function render(){
   const q = document.getElementById("q").value.trim().toLowerCase();
   const sort = document.getElementById("sort").value;
-
   let rows = DATOS.filter(r => activos.has(r.c));
   if(q) rows = rows.filter(r => [r.t,r.m,r.e,r.u,r.c].join(" ").toLowerCase().includes(q));
-
   rows.sort((a,b)=>{
     if(sort==="fecha-asc")  return (a.f||"").localeCompare(b.f||"");
     if(sort==="titulo-asc") return (a.t||"").localeCompare(b.t||"","es");
@@ -137,22 +372,20 @@ function render(){
   });
 
   const list = document.getElementById("list");
-  if(!rows.length){ list.innerHTML = '<div class="empty">No hay nada que coincida con tu búsqueda.</div>'; return; }
+  if(!rows.length){ list.innerHTML = '<div class="empty">Nada por aquí todavía. Pulsa <b>+ Agregar</b>.</div>'; return; }
 
   let html = "", lastKey = "";
   rows.forEach(r=>{
     const F = fmtFecha(r.f);
-    if(agrupa && sort.startsWith("fecha")){
-      if(F.key !== lastKey){
-        lastKey = F.key;
-        html += `<div class="month">${F.key?mesLabel(F.key):"sin fecha"} · ${
-          rows.filter(x=>fmtFecha(x.f).key===F.key).length} elementos</div>`;
-      }
+    const idx = DATOS.indexOf(r);
+    if(agrupa && sort.startsWith("fecha") && F.key !== lastKey){
+      lastKey = F.key;
+      html += `<div class="month">${F.key?mesLabel(F.key):"sin fecha"} · ${
+        rows.filter(x=>fmtFecha(x.f).key===F.key).length} elementos</div>`;
     }
     const target = r.u || "";
-    const link = target ? (esUrl(target)||target.startsWith("file:") ? target
-                          : encodeURI(target.split("\\").join("/"))) : "";
     const esWeb = esUrl(target);
+    const link = target ? (esWeb ? target : encodeURI(target.split("\\").join("/"))) : "";
 
     html += `<div class="card">
       <div class="date"><b>${F.dia}</b>${F.mes}</div>
@@ -165,7 +398,9 @@ function render(){
       </div>
       <div class="acts">
         ${link? `<a href="${esc(link)}" target="_blank" rel="noopener">${esWeb?"Abrir":"Abrir archivo"}</a>`:""}
-        ${esWeb? `<button onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(target).replace(/'/g,"\\'")}')">Copiar URL</button>`:""}
+        ${esWeb? `<button onclick="copiar('${esc(target).replace(/'/g,"\\'")}')">Copiar URL</button>`:""}
+        <button class="mod" onclick="editar(${idx})">Modificar</button>
+        <button class="del" onclick="pedirBorrar(${idx})">Eliminar</button>
       </div>
     </div>`;
   });
@@ -185,7 +420,6 @@ function renderStats(){
     <div class="stat"><b>${por("Nota")}</b>notas / eventos</div>
     <div class="stat"><b style="font-size:14px;padding-top:5px">${rango}</b>rango de fechas</div>`;
 }
-
 function renderChips(){
   document.getElementById("chips").innerHTML = CATS.map(c=>
     `<span class="chip ${activos.has(c)?"on":""}" data-c="${c}">${
@@ -197,7 +431,132 @@ function renderChips(){
     renderChips(); render();
   });
 }
+function renderTodo(){ renderStats(); renderChips(); render(); pintarBotonConexion(); }
 
+function pintarBotonConexion(){
+  const b = document.getElementById("btnConn");
+  if(token()){ b.textContent = "Conectado ✓"; b.style.borderColor = "var(--ok)"; b.style.color = "var(--ok)"; }
+  else { b.textContent = "Conectar"; b.style.borderColor = "var(--line)"; b.style.color = ""; }
+}
+
+function copiar(t){ if(navigator.clipboard) navigator.clipboard.writeText(t); toast("URL copiada"); }
+
+/* -------------------------------------------------------- formularios */
+const F = id => document.getElementById(id);
+function abrir(id){ F(id).classList.add("on"); }
+function cerrar(id){ F(id).classList.remove("on"); }
+
+function editar(i){
+  editando = i;
+  const o = DATOS[i];
+  F("formTitulo").textContent = "Modificar elemento";
+  F("f_titulo").value = o.t||""; F("f_fecha").value = o.f||"";
+  F("f_cat").value = CATS.includes(o.c)?o.c:"Nota";
+  F("f_motivo").value = o.m||""; F("f_evento").value = o.e||"";
+  F("f_url").value = esUrl(o.u)?o.u:""; F("f_ubi").value = esUrl(o.u)?"":(o.u||"");
+  F("formSinToken").classList.toggle("oculto", !!token());
+  abrir("fondoForm");
+}
+function agregar(){
+  editando = null;
+  F("formTitulo").textContent = "Agregar elemento";
+  ["f_titulo","f_motivo","f_evento","f_url","f_ubi"].forEach(id=>F(id).value="");
+  F("f_fecha").value = new Date().toISOString().slice(0,10);
+  F("f_cat").value = "URL-Trabajo";
+  F("formSinToken").classList.toggle("oculto", !!token());
+  abrir("fondoForm");
+}
+
+async function guardar(){
+  const t = F("f_titulo").value.trim();
+  if(!t){ toast("El título es obligatorio", true); F("f_titulo").focus(); return; }
+  if(!token()){ cerrar("fondoForm"); abrir("fondoConn"); toast("Conecta tu cuenta de GitHub primero", true); return; }
+
+  const obj = {
+    f: F("f_fecha").value || new Date().toISOString().slice(0,10),
+    c: F("f_cat").value,
+    t,
+    u: F("f_url").value.trim() || F("f_ubi").value.trim(),
+    m: F("f_motivo").value.trim(),
+    e: F("f_evento").value.trim()
+  };
+
+  const btn = F("fGuardar"); btn.disabled = true; btn.textContent = "Guardando…";
+  try{
+    let nuevo;
+    if(editando === null){
+      nuevo = DATOS.concat([obj]);
+      await guardarCSV(nuevo, "Agrega: "+t);
+    } else {
+      nuevo = DATOS.slice();
+      nuevo[editando] = obj;
+      await guardarCSV(nuevo, "Modifica: "+t);
+    }
+    const tras = await bajarCSV();
+    if(tras) DATOS = tras.map(aObj);
+    cerrar("fondoForm");
+    renderTodo();
+    toast(editando===null ? "Agregado y publicado en la nube ✓" : "Modificado y publicado en la nube ✓");
+  }catch(e){ toast("No se pudo guardar: "+e.message, true); }
+  btn.disabled = false; btn.textContent = "Guardar";
+}
+
+function pedirBorrar(i){
+  borrando = i;
+  const o = DATOS[i];
+  F("b_texto").innerHTML = "Vas a eliminar <b>"+esc(o.t)+"</b>"+
+    (o.m? "<br><span style='color:#8b9bad'>"+esc(o.m)+"</span>" : "");
+  const rel = o.u && !esUrl(o.u) && !/^[a-zA-Z]:[\\/]/.test(o.u);
+  F("b_wrapArch").style.display = rel ? "block" : "none";
+  F("b_archivo").checked = true;
+  abrir("fondoBorra");
+}
+
+async function confirmarBorrar(){
+  if(borrando === null) return;
+  const o = DATOS[borrando];
+  if(!token()){ cerrar("fondoBorra"); abrir("fondoConn"); toast("Conecta tu cuenta de GitHub primero", true); return; }
+  const btn = F("bAceptar"); btn.disabled = true; btn.textContent = "Eliminando…";
+  try{
+    if(F("b_wrapArch").style.display !== "none" && F("b_archivo").checked && o.u && !esUrl(o.u)){
+      try{ await borrarArchivo(o.u); }catch(e){ toast("El archivo no se pudo borrar: "+e.message, true); }
+    }
+    const nuevo = DATOS.slice(); nuevo.splice(borrando,1);
+    await guardarCSV(nuevo, "Elimina: "+o.t);
+    const tras = await bajarCSV();
+    if(tras) DATOS = tras.map(aObj); else DATOS = nuevo;
+    cerrar("fondoBorra");
+    renderTodo();
+    toast("Eliminado de la nube ✓");
+  }catch(e){ toast("No se pudo eliminar: "+e.message, true); }
+  borrando = null;
+  btn.disabled = false; btn.textContent = "Eliminar";
+}
+
+/* ---------------------------------------------------------- conexión */
+function abrirConexion(){
+  const info = repoInfo();
+  F("c_repo").value = info ? (info.owner+"/"+info.repo) : "";
+  F("c_token").value = token();
+  F("cOlvidar").classList.toggle("oculto", !token());
+  abrir("fondoConn");
+}
+function guardarToken(){
+  const t = F("c_token").value.trim();
+  if(!t){ toast("Pega tu token", true); return; }
+  localStorage.setItem(TK, t);
+  cerrar("fondoConn");
+  pintarBotonConexion();
+  probarToken();
+}
+async function probarToken(){
+  try{
+    const yo = await gh("GET","/user");
+    toast("Conectado como "+yo.login+" ✓");
+  }catch(e){ toast("El token no sirve: "+e.message, true); }
+}
+
+/* ------------------------------------------------------------- inicio */
 document.getElementById("q").oninput = render;
 document.getElementById("sort").onchange = render;
 document.getElementById("group").onclick = e => {
@@ -205,14 +564,27 @@ document.getElementById("group").onclick = e => {
   e.target.textContent = "Agrupar por mes: " + (agrupa?"Sí":"No");
   render();
 };
+document.getElementById("btnAdd").onclick = agregar;
+document.getElementById("btnConn").onclick = abrirConexion;
+document.getElementById("fCancelar").onclick = ()=>cerrar("fondoForm");
+document.getElementById("fGuardar").onclick = guardar;
+document.getElementById("cSalir").onclick = ()=>cerrar("fondoConn");
+document.getElementById("cGuardar").onclick = guardarToken;
+document.getElementById("cOlvidar").onclick = ()=>{ localStorage.removeItem(TK); cerrar("fondoConn"); pintarBotonConexion(); toast("Token borrado de este equipo"); };
+document.getElementById("bCancelar").onclick = ()=>{ borrando=null; cerrar("fondoBorra"); };
+document.getElementById("bAceptar").onclick = confirmarBorrar;
+document.querySelectorAll(".fondo").forEach(f=>f.onclick = e=>{ if(e.target===f) f.classList.remove("on"); });
 
-const ult = DATOS.map(r=>r.f).filter(Boolean).sort().pop();
-document.getElementById("sub").textContent =
-  `${DATOS.length} elementos · última actualización: ${ult||"—"} · organiza por fecha y motivo`;
-document.getElementById("foot").textContent =
-  "Espacio personal · se genera desde registro.csv con _scripts\\Generar-Indice.ps1";
-
-renderStats(); renderChips(); render();
+(async function inicio(){
+  const remoto = await bajarCSV();          // lo que esta realmente en la nube
+  if(remoto && remoto.length) DATOS = remoto.map(aObj);
+  const ult = DATOS.map(r=>r.f).filter(Boolean).sort().pop();
+  document.getElementById("sub").textContent =
+    `${DATOS.length} elementos · última actualización: ${ult||"—"} · modificar y eliminar desde aquí`;
+  document.getElementById("foot").textContent =
+    "Espacio personal · cambios guardados directamente en registro.csv de GitHub";
+  renderTodo();
+})();
 </script>
 </body>
 </html>

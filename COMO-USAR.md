@@ -25,6 +25,37 @@ El visor se regenera solo después de cada borrado.
 
 ---
 
+# Modificar y eliminar desde la propia web
+
+Tu espacio online tiene botones **Modificar** y **Eliminar** en cada tarjeta, y un
+**+ Agregar** arriba. Funcionan desde el celular y desde cualquier PC, y los cambios
+se guardan directamente en `registro.csv` de GitHub.
+
+### Primera vez en cada equipo: conectar
+
+1. Pulsa **Conectar** (arriba a la derecha)
+2. Crea tu token aquí (una sola vez, **No expiration** para que nunca venza):
+   <https://github.com/settings/tokens/new>
+   · Scopes: solo **`public_repo`** (tu repositorio es público)
+3. Pégalo en el recuadro y pulsa **Conectar**
+
+El token se guarda **solo en ese navegador** (no viaja con la página ni la página
+pública lo muestra). Si usas otro equipo, lo conectas ahí también. Para quitarlo:
+**Conectar → Borrar token de este equipo**.
+
+### Uso normal
+
+| Botón | Qué hace |
+|---|---|
+| **+ Agregar** | Formulario con fecha, categoría, motivo y evento → sube a GitHub |
+| **Modificar** | Abre el elemento con todos sus datos → guarda los cambios |
+| **Eliminar** | Pide confirmación y, si quieres, borra también el archivo físico |
+
+Después de cada cambio la web vuelve a leer `registro.csv` y muestra el resultado.
+GitHub tarda ~1 minuto en republicar `index.html`.
+
+---
+
 # Subir todo a la nube (GitHub)
 
 Tu espacio se sube a GitHub y queda publicado para verlo **desde el celular

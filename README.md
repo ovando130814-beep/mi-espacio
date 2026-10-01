@@ -19,6 +19,8 @@ Ahí ves todo en una sola pantalla, con:
 - Modo **claro/oscuro**, compartir y visor de imágenes.
 - **🗑 Papelera**: lo que borras se recupera; **🕘 Historial**: devuelve el
   catálogo a una versión anterior.
+- **🩺 Revisar**: detecta enlaces rotos, archivos que ya no existen y datos
+  malos; guardar y subir quedan **bloqueados** si el catálogo tiene errores.
 - Diseño **responsivo**: en PC con barra lateral arriba, en el celular con
   barra de botones abajo.
 
@@ -43,8 +45,10 @@ MiEspacio\
     ├── Eliminar.ps1         ← lo quita y lo deja en la papelera
     ├── Restaurar.ps1        ← devuelve algo de la papelera
     ├── Papelera.ps1         ← ayudante de la papelera (no ejecutar)
+    ├── Validar-Catalogo.ps1 ← revisa el catálogo (y lo arregla con -Corregir)
+    ├── Pruebas-Validador.ps1 ← comprueba que el validador funciona
     ├── Generar-Indice.ps1   ← solo regenera el visor
-    ├── Subir-A-La-Nube.ps1  ← sube todo a GitHub
+    ├── Subir-A-La-Nube.ps1  ← sube todo a GitHub (valida antes de subir)
     └── plantilla.html       ← diseño del visor (no editar)
 ```
 

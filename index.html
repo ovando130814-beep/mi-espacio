@@ -222,6 +222,27 @@
        border:1px dashed var(--line);border-radius:9px;padding:8px 10px}
   .restaurar .mod{border-color:var(--ok)}
 
+  /* ------------------------------------------ revisión del espacio */
+  .revRes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  .revCuenta{font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;
+             border:1px solid var(--line);background:var(--panel2);color:var(--muted)}
+  .revCuenta.ok{color:var(--ok);border-color:var(--ok)}
+  .revCuenta.mal{color:var(--mal);border-color:var(--mal)}
+  .revCuenta.av{color:#c9962b;border-color:#c9962b}
+  .revProgreso{font-size:13.5px;color:var(--muted);padding:6px 0}
+  .revBarra{height:9px;background:var(--panel2);border:1px solid var(--line);
+            border-radius:7px;overflow:hidden;margin-top:9px}
+  .revBarra i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+  .revSec{margin-top:15px}
+  .revSec h4{margin:0 0 8px;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .revItem{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);
+           background:var(--panel2);border-radius:10px;padding:9px 11px;font-size:13px;margin-bottom:7px}
+  .revItem.mal{border-color:var(--mal)}
+  .revItem.av{border-color:#c9962b}
+  .revItem .ico{flex:0 0 auto}
+  .revItem .txt{flex:1;min-width:0;word-break:break-word}
+  .revItem a{color:var(--accent);font-weight:700;white-space:nowrap}
+
   @media(max-width:640px){
     .listaP{max-height:60vh}
     .elemP .botones button{flex:1 1 45%}
@@ -281,6 +302,7 @@
     <button class="pri solo-grande" id="btnAdd">+ Agregar</button>
     <button class="solo-grande" id="btnConn">Conectar</button>
     <button class="solo-grande" id="btnPapelera" title="Papelera e historial: recuperar lo borrado">🗑 Papelera</button>
+    <button class="solo-grande" id="btnRevisar" title="Comprobar datos, archivos y enlaces">🩺 Revisar</button>
   </div>
 
   <div class="chips" id="chips" role="group" aria-label="Filtrar por categoría"></div>
@@ -295,6 +317,7 @@
       <div><h3>Por categoría</h3><div id="gCat"></div></div>
       <div><h3>Por mes</h3><div id="gMes"></div></div>
     </div>
+    <button id="btnRevisarM" style="width:100%;margin-top:12px">🩺 Revisar datos, archivos y enlaces del espacio</button>
   </div>
 </header>
 
@@ -443,6 +466,21 @@
   </div>
 </div>
 
+<!-- ===================== REVISIÓN DEL ESPACIO ===================== -->
+<div class="fondo" id="fondoRev" role="dialog" aria-modal="true" aria-labelledby="revTitulo">
+  <div class="caja">
+    <h2 id="revTitulo">🩺 Revisar el espacio</h2>
+    <div class="ayuda" id="revAyuda">Comprueba los datos del catálogo, si los archivos siguen aquí
+      y si los enlaces abren. Si un sitio responde pero no deja leer su código, se cuenta igual como que abre.</div>
+    <div id="revCuerpo"></div>
+    <div class="btns">
+      <button id="revCerrar">Cerrar</button>
+      <button id="revOtra" class="oculto">🔄 Revisar de nuevo</button>
+      <button class="pri oculto" id="revCopiar">📋 Copiar informe</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -541,6 +579,248 @@ function aFila(o){
   return { Fecha:o.f, Categoria:o.c, Titulo:o.t,
            Tipo: u? (nom.split(".").pop()||"") : "",
            Ubicacion:u, URL: esUrl(u)? u : "", Motivo:o.m, Evento:o.e };
+}
+
+/* ============================================ VALIDAR Y REVISAR */
+function validarDatos(lista){
+  const errores = [], avisos = [];
+  const visto = new Map();
+  const anho = new Date().getFullYear();
+  lista.forEach((o, i) => {
+    const n = i + 1;
+    const tit = (o.t||"").trim(), cat = (o.c||"").trim(),
+          fec = (o.f||"").trim(), ubi = (o.u||"").trim();
+    let et = "Registro " + n;
+    if(tit) et = '"' + tit + '"';
+    if(!tit) errores.push(et + ": no tiene título.");
+    if(!cat) errores.push(et + ": no tiene categoría.");
+    else if(!CATS.includes(cat)) errores.push(et + ': la categoría "' + cat +
+      '" no está permitida (' + CATS.join(", ") + ").");
+    if(!fec) avisos.push(et + ": está sin fecha.");
+    else{
+      const d = new Date(fec + "T00:00:00");
+      const bien = /^\d{4}-\d{2}-\d{2}$/.test(fec) && !isNaN(d) && d.toISOString().slice(0,10) === fec;
+      if(!bien) errores.push(et + ': la fecha "' + fec + '" no es válida (use AAAA-MM-DD).');
+      else{
+        const a = +fec.slice(0,4);
+        if(a < 2000 || a > anho + 1) avisos.push(et + ": la fecha " + fec + " parece equivocada.");
+      }
+    }
+    if(cat === "URL-Trabajo" && ubi && !esUrl(ubi))
+      avisos.push(et + ': "' + ubi + '" no empieza por https:// y está guardado como URL de trabajo.');
+    if(ubi && !esUrl(ubi) && ubi.indexOf("\\") >= 0)
+      avisos.push(et + ': la ruta "' + ubi + '" usa barras invertidas; usa / en lugar de \\.');
+    if(tit){
+      const k = [tit, fec, ubi].join("|").toLowerCase();
+      if(visto.has(k)) avisos.push(et + ": parece repetido (mismo título, fecha y ubicación que el registro " + visto.get(k) + ").");
+      else visto.set(k, n);
+    }
+  });
+  return {errores, avisos};
+}
+
+function revItemHTML(x){
+  const cls = x.tipo ? " " + x.tipo : "";
+  const ico = x.ico || (x.tipo === "mal" ? "✗" : x.tipo === "av" ? "⚠" : "✓");
+  const link = x.enlace ? ' <a href="' + esc(x.enlace) + '" target="_blank" rel="noopener">abrir ↗</a>' : "";
+  return '<div class="revItem' + cls + '"><span class="ico">' + ico + '</span>' +
+         '<span class="txt">' + esc(x.t) + link + '</span></div>';
+}
+function revBloque(titulo, items, okTxt){
+  const clase = items.some(x => x.tipo === "mal") ? "mal" : (items.length ? "av" : "ok");
+  const cuenta = items.length ? String(items.length) : "✓";
+  const cuerpo = items.length ? items.map(revItemHTML).join("")
+    : '<div class="revItem"><span class="ico">✓</span><span class="txt">' + esc(okTxt || "Sin problemas") + '</span></div>';
+  return '<div class="revSec"><h4>' + esc(titulo) +
+         ' <span class="revCuenta ' + clase + '">' + cuenta + '</span></h4>' + cuerpo + '</div>';
+}
+async function probarURL(u, ms){
+  ms = ms || 9000;
+  const t1 = new AbortController(), r1 = setTimeout(() => t1.abort(), ms);
+  try{
+    const r = await fetch(u, {method:"GET", mode:"cors", redirect:"follow", cache:"no-store", signal:t1.signal});
+    clearTimeout(r1);
+    return {ok:r.ok, estado:r.status, leido:true};
+  }catch(e1){
+    clearTimeout(r1);
+    /* el sitio puede bloquear revisiones desde otra página: al menos que responda */
+    const t2 = new AbortController(), r2 = setTimeout(() => t2.abort(), ms);
+    try{
+      await fetch(u, {mode:"no-cors", cache:"no-store", signal:t2.signal});
+      return {ok:true, estado:null, leido:false};
+    }catch(e2){ return {ok:false, estado:null, leido:false}; }
+    finally{ clearTimeout(r2); }
+  }
+}
+const esperar = ms => new Promise(ok => setTimeout(ok, ms));
+/* los enlaces fallan a veces por prisa o por la red: antes de decir "roto", se reintenta */
+async function probarConReintento(u){
+  let r = await probarURL(u, 9000);
+  if(!r.ok){ await esperar(900); r = await probarURL(u, 7000); }
+  return r;
+}
+async function existeArchivo(ruta){
+  try{
+    let resp = await fetch(ruta, {method:"HEAD", cache:"no-store"});
+    if(!resp.ok && resp.status === 405) resp = await fetch(ruta, {cache:"no-store"});
+    return resp.ok;
+  }catch(e){ return false; }
+}
+async function archivoConReintento(ruta){
+  let ok = await existeArchivo(ruta);
+  if(!ok){ await esperar(700); ok = await existeArchivo(ruta); }
+  return ok;
+}
+
+let revTrabajando = false, revInforme = "";
+async function revisar(){
+  if(revTrabajando) return;
+  revTrabajando = true;
+  $("revTitulo").textContent = "🩺 Revisar el espacio";
+  $("revAyuda").textContent = "Comprueba los datos del catálogo, si los archivos siguen aquí y si los enlaces abren. " +
+    "Si un sitio responde pero no deja leer su código, se cuenta igual como que abre.";
+  $("revOtra").classList.add("oculto");
+  $("revCopiar").classList.add("oculto");
+  $("revCuerpo").innerHTML = '<div class="revProgreso" role="status" aria-live="polite">' +
+    '<span id="revTxt">Preparando…</span><div class="revBarra"><i id="revBar"></i></div></div>';
+  abrir("fondoRev");
+  const paso = (txt, p) => {
+    const t = $("revTxt"), b = $("revBar");
+    if(t) t.textContent = txt;
+    if(b) b.style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + "%";
+  };
+  try{
+    /* 1) datos */
+    paso("Revisando los datos del catálogo…", .12);
+    const v = validarDatos(DATOS);
+    const errs  = v.errores.map(t => ({t, tipo:"mal", ico:"✗"}));
+    const avis  = v.avisos.map(t  => ({t, tipo:"av",  ico:"⚠"}));
+
+    /* separar destinos */
+    const rel = [], absPC = [], enlaces = [];
+    DATOS.forEach(o => {
+      const u = (o.u || "").trim();
+      if(!u) return;
+      if(esUrl(u)) enlaces.push({o, u});
+      else if(/^[a-zA-Z]:[\\/]/.test(u)) absPC.push({o, u});
+      else rel.push({o, u});
+    });
+
+    /* 2) archivos */
+    const faltan = [], notas = [];
+    if(location.protocol === "file:" && rel.length){
+      notas.push({t: "No se pudieron comprobar " + rel.length +
+        " archivo(s): estás abriendo el archivo directamente. Usa la web publicada.", tipo:"av", ico:"⚠"});
+    }else{
+      for(let k = 0; k < rel.length; k++){
+        const r = rel[k];
+        paso("Comprobando archivos (" + (k+1) + "/" + rel.length + ")…", .15 + .35 * (k+1) / rel.length);
+        const ruta = encodeURI(r.u.split("\\").join("/"));
+        const ok = await archivoConReintento(ruta);
+        if(!ok) faltan.push({t: r.o.t + " — falta el archivo " + r.u, tipo:"mal", ico:"✗"});
+      }
+    }
+    absPC.forEach(x => notas.push({t: x.o.t + ": la ubicación " + x.u +
+      " es de este PC y no está en la nube.", tipo:"av", ico:"⚠"}));
+
+    /* 3) enlaces (máximo 40,4 a la vez) */
+    const LIM = 40;
+    const lista = enlaces.slice(0, LIM);
+    const res = new Array(lista.length).fill(null);
+    let cursor = 0, listos = 0;
+    const trabajador = async () => {
+      while(true){
+        const k = cursor++;
+        if(k >= lista.length) return;
+        const x = lista[k];
+        res[k] = (location.protocol === "https:" && /^http:\/\//i.test(x.u))
+          ? {ok:true, estado:null, leido:false, mezcla:true}
+          : await probarConReintento(x.u);
+        listos++;
+        paso("Comprobando enlaces (" + listos + "/" + lista.length + ")…",
+             .5 + .5 * (listos / Math.max(1, lista.length)));
+      }
+    };
+    await Promise.all(Array.from({length: Math.min(4, Math.max(1, lista.length))}, trabajador));
+
+    const rotos = [], dudosos = [], abren = [];
+    lista.forEach((x, k) => {
+      const r = res[k] || {ok:false};
+      if(r.mezcla) dudosos.push({t: x.o.t + " — es http:// y no se puede comprobar desde una página segura: " + x.u, tipo:"av", ico:"⚠", enlace:x.u});
+      else if(!r.ok) rotos.push({t: x.o.t + " — no responde: " + x.u, tipo:"mal", ico:"✗", enlace:x.u});
+      else if(!r.leido) abren.push({t: x.o.t + " — responde (no deja leer su código): " + x.u, ico:"✓", enlace:x.u});
+      else abren.push({t: x.o.t + " — responde (HTTP " + r.estado + "): " + x.u, ico:"✓", enlace:x.u});
+    });
+    const sinProbar = enlaces.length - lista.length;
+    if(sinProbar > 0) notas.push({t: "No se revisaron " + sinProbar +
+      " enlace(s) más (máximo 40 por revisión).", tipo:"av", ico:"⚠"});
+
+    /* 4) resumen */
+    const archOk  = Math.max(0, rel.length - faltan.length);
+    const nProbs  = errs.length + rotos.length + faltan.length;
+    const nAvis   = avis.length + dudosos.length + notas.length;
+    const nOk     = archOk + abren.length;
+
+    let muestra = abren;
+    if(abren.length > 12){
+      muestra = abren.slice(0,12).concat([{t: "…y " + (abren.length-12) + " enlace(s) más que responden bien", ico:"✓"}]);
+    }
+
+    let h = '<div class="revRes">' +
+      '<span class="revCuenta ' + (nProbs ? "mal" : "ok") + '">✗ ' + nProbs + ' problema(s)</span>' +
+      '<span class="revCuenta ' + (nAvis ? "av" : "ok") + '">⚠ ' + nAvis + ' aviso(s)</span>' +
+      '<span class="revCuenta ok">✓ ' + nOk + ' comprobado(s)</span></div>';
+    h += revBloque("Datos del catálogo", errs.concat(avis), DATOS.length + " registro(s) correctos");
+    h += revBloque("Archivos del espacio", faltan.concat(notas),
+                   rel.length ? rel.length + " archivo(s) localizados" : "no hay archivos que comprobar");
+    h += revBloque("Enlaces que fallan", rotos.concat(dudosos),
+                   enlaces.length ? "ningún enlace falla" : "no hay enlaces que comprobar");
+    h += revBloque("Enlaces que abren", muestra, "ninguno responde todavía");
+    $("revCuerpo").innerHTML = h;
+
+    const aLineas = arr => arr.map(x => "- " + x.t);
+    const parte = (tit, arr) => [""].concat([tit], aLineas(arr));
+    revInforme = ["REVISIÓN DEL ESPACIO — " + new Date().toLocaleString("es"),
+      "Problemas: " + nProbs + " | Avisos: " + nAvis + " | Comprobados: " + nOk, "", "DATOS"]
+      .concat(aLineas(errs.concat(avis)))
+      .concat(parte("ARCHIVOS", faltan.concat(notas)))
+      .concat(parte("ENLACES QUE FALLAN", rotos.concat(dudosos)))
+      .concat(parte("ENLACES QUE ABREN", abren))
+      .join("\n");
+
+    $("revOtra").classList.remove("oculto");
+    $("revCopiar").classList.remove("oculto");
+    toast(nProbs ? "Revisión: " + nProbs + " problema(s) para mirar ⚠" : "Revisión sin problemas ✓", nProbs > 0);
+  }catch(e){
+    $("revCuerpo").innerHTML = '<div class="revItem mal"><span class="ico">✗</span><span class="txt">' +
+      esc("No se pudo completar la revisión: " + e.message) + '</span></div>';
+    $("revOtra").classList.remove("oculto");
+  }
+  revTrabajando = false;
+}
+
+function copiarInforme(){
+  const listo = () => toast("Informe copiado ✓");
+  const fallback = () => {
+    const ta = document.createElement("textarea");
+    ta.value = revInforme;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); listo(); }catch(e){ toast("No se pudo copiar el informe", true); }
+    ta.remove();
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(revInforme).then(listo, fallback);
+  else fallback();
+}
+
+function mostrarProblemas(titulo, ayuda, errs, avis){
+  $("revTitulo").textContent = titulo;
+  $("revAyuda").textContent = ayuda;
+  $("revOtra").classList.add("oculto");
+  $("revCopiar").classList.add("oculto");
+  $("revCuerpo").innerHTML = revBloque("Hay que corregirlo", errs, "Sin problemas") +
+    (avis.length ? revBloque("Avisos (se puede guardar igual)", avis, "") : "");
+  abrir("fondoRev");
 }
 
 /* ============================================== GUARDAR EN LA NUBE */
@@ -831,16 +1111,23 @@ async function guardar(){
     u: $("f_url").value.trim() || $("f_ubi").value.trim(),
     m: $("f_motivo").value.trim(), e: $("f_evento").value.trim()
   };
+  const nuevo = (editando === null) ? DATOS.concat([obj])
+                                    : DATOS.map((x,i) => i === editando ? obj : x);
+  const v = validarDatos(nuevo);
+  if(v.errores.length){
+    mostrarProblemas("No se puede guardar", "Corrige estos datos antes de publicarlos:",
+      v.errores.map(x => ({t:x, tipo:"mal", ico:"✗"})),
+      v.avisos.map(x => ({t:x, tipo:"av", ico:"⚠"})));
+    return;
+  }
   const btn = $("fGuardar"); btn.disabled = true; btn.textContent = "Guardando…";
   try{
-    let nuevo;
-    if(editando === null){ nuevo = DATOS.concat([obj]); }
-    else { nuevo = DATOS.slice(); nuevo[editando] = obj; }
     const tras = await guardarCSV(nuevo, (editando===null?"Agrega: ":"Modifica: ")+t);
     DATOS = tras.map(aObj);
     cerrar("fondoForm");
     renderTodo();
-    toast(editando===null ? "Agregado y publicado ✓" : "Modificado y publicado ✓");
+    toast((editando===null ? "Agregado y publicado ✓" : "Modificado y publicado ✓") +
+      (v.avisos.length ? " · " + v.avisos.length + " aviso(s): míralos con 🩺" : ""));
   }catch(e){ toast("No se pudo guardar: "+e.message, true); }
   btn.disabled = false; btn.textContent = "Guardar";
 }
@@ -1247,6 +1534,11 @@ $("btnConn").onclick = abrirConexion;
 $("mConn").onclick = abrirConexion;
 $("btnPapelera").onclick = abrirPapelera;
 $("mPapelera").onclick = abrirPapelera;
+$("btnRevisar").onclick = revisar;
+$("btnRevisarM").onclick = revisar;
+$("revCerrar").onclick = () => cerrar("fondoRev");
+$("revOtra").onclick = revisar;
+$("revCopiar").onclick = copiarInforme;
 $("papCerrar").onclick = () => cerrar("fondoPap");
 $("papVaciar").onclick = vaciarPapelera;
 document.querySelectorAll("#papTabs button").forEach(b => b.onclick = () => cambiarPestana(b.dataset.p));

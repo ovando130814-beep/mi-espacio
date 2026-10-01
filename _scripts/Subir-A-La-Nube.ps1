@@ -15,6 +15,7 @@
     .\Subir-A-La-Nube.ps1 -Estado                # direccion web y estado
     .\Subir-A-La-Nube.ps1 -BorrarEnLaNube        # lista que se va a borrar alla
     .\Subir-A-La-Nube.ps1 -Reconfigurar          # cambiar usuario/repositorio
+    .\Subir-A-La-Nube.ps1 -SinValidar            # sube aunque el catalogo tenga errores
 #>
 param(
   [string]$Mensaje = '',
@@ -22,7 +23,8 @@ param(
   [switch]$Diagnostico,
   [switch]$Abrir,
   [switch]$BorrarEnLaNube,
-  [switch]$Reconfigurar
+  [switch]$Reconfigurar,
+  [switch]$SinValidar
 )
 
 $ErrorActionPreference = 'Continue'
@@ -212,6 +214,19 @@ if ($Diagnostico) {
     else { Write-Host "    FALLO: falta $n" -ForegroundColor Red; Write-Host "    Ejecuta .\Generar-Indice.ps1"; return }
   }
 
+  Write-Host "[2b] Validando el catalogo..."
+  if ($SinValidar) {
+    Write-Host "    omitida (-SinValidar)" -ForegroundColor Yellow
+  } else {
+    & (Join-Path $PSScriptRoot 'Validar-Catalogo.ps1') -Raiz $Raiz
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host "    FALLO: el catalogo tiene errores y NO se sube." -ForegroundColor Red
+      Write-Host "    Corrigelos y vuelve a intentar (mira el listado de arriba)."
+      return
+    }
+    Write-Host "    OK  catalogo valido" -ForegroundColor Green
+  }
+
   Write-Host "[3] Subiendo a GitHub..."
   Preparar-Git; Configurar-Remoto
   $pend = Obtener-Cambios
@@ -265,7 +280,7 @@ if ($Diagnostico) {
 }
 
 # ================================================================ SUBIR
-Write-Host "[1/4] Llave SSH..." -ForegroundColor Cyan
+Write-Host "[1/5] Llave SSH..." -ForegroundColor Cyan
 Asegurar-Clave
 $ssh = Get-Estado-SSH
 if (-not $ssh.registrada) {
@@ -280,11 +295,26 @@ if (-not $ssh.registrada) {
 }
 Write-Host ("  OK {0} (no caduca)" -f $ssh.usuario) -ForegroundColor Green
 
-Write-Host "[2/4] Preparando git..." -ForegroundColor Cyan
+Write-Host "[2/5] Preparando git..." -ForegroundColor Cyan
 Preparar-Git
 Configurar-Remoto
 
-Write-Host "[3/4] Analizando cambios..." -ForegroundColor Cyan
+Write-Host "[3/5] Validando el catalogo..." -ForegroundColor Cyan
+if ($SinValidar) {
+  Write-Host "  Revision omitida (-SinValidar)." -ForegroundColor Yellow
+} else {
+  & (Join-Path $PSScriptRoot 'Validar-Catalogo.ps1') -Raiz $Raiz
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "SUBIDA CANCELADA: registro.csv tiene errores." -ForegroundColor Red
+    Write-Host "Corrigelos (prueba .\Validar-Catalogo.ps1 -Corregir) y vuelve a subir." -ForegroundColor Yellow
+    Write-Host "Si sabes lo que haces y aun asi quieres subir:  .\Subir-A-La-Nube.ps1 -SinValidar" -ForegroundColor Yellow
+    return
+  }
+  Write-Host "  OK  catalogo valido." -ForegroundColor Green
+}
+
+Write-Host "[4/5] Analizando cambios..." -ForegroundColor Cyan
 $pendientes = Obtener-Cambios
 $borrar = @($pendientes | Where-Object { $_ -match '^\s*D' })
 if ($BorrarEnLaNube -and $borrar.Count -gt 0) {
@@ -301,7 +331,7 @@ if ($pendientes.Count -eq 0) {
   if (-not $Mensaje) { $Mensaje = Read-Host 'Mensaje del cambio (Enter para automatico)' }
   if (-not $Mensaje) { $Mensaje = "Actualizacion " + (Get-Date -Format 'yyyy-MM-dd HH:mm') }
 
-  Write-Host "[4/4] Subiendo..." -ForegroundColor Cyan
+  Write-Host "[5/5] Subiendo..." -ForegroundColor Cyan
   git -C $Raiz commit -q -m $Mensaje 2>&1 | Out-Null
   $err = Subir-Commits $Mensaje
   if ($err) {

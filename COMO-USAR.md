@@ -87,6 +87,55 @@ La papelera es un archivo más del repositorio (`papelera.json`), así que
 
 ---
 
+# 🩺 Revisar tu espacio (enlaces y archivos rotos)
+
+Un botón comprueba **todo** de una vez: los datos del catálogo, si los archivos
+siguen en su carpeta y si los enlaces de trabajo todavía abren.
+
+### Desde la web
+
+| Dónde | Botón |
+|---|---|
+| **PC** | Arriba, junto a 🗑 Papelera: **🩺 Revisar** |
+| **Celular** | Barra de abajo → **⚙ Filtros** → **🩺 Revisar datos, archivos y enlaces** |
+
+El resultado sale en cuatro bloques:
+
+| Bloque | Qué te dice |
+|---|---|
+| **Datos del catálogo** | Títulos vacíos, fechas malas, categorías que no existen, registros repetidos |
+| **Archivos del espacio** | ✗ los archivos que **ya no están** en su carpeta · ⚠ las rutas que solo existen en tu PC |
+| **Enlaces que fallan** | ✗ URLs que **no responden** (se reintenta antes de darlas por muertas) |
+| **Enlaces que abren** | ✓ los que sí responden |
+
+Arriba salen tres cuentas: **✗ problemas · ⚠ avisos · ✓ comprobados**.
+El botón **📋 Copiar informe** te deja el listado en el portapapeles.
+
+> **Guardar está protegido:** si el catálogo tiene datos rotos, al guardar
+> desde la web aparece *"No se puede guardar"* con lo que hay que corregir,
+> y **no se publica nada**.
+
+### Desde la PC (antes de subir)
+
+```powershell
+cd C:\Users\Administrador\MiEspacio\_scripts
+.\Validar-Catalogo.ps1             # solo revisa
+.\Validar-Catalogo.ps1 -Corregir   # corrige lo automático (filas vacías, fechas, categorías, rutas)
+```
+
+**La subida a la nube ya lo comprueba sola**: si `registro.csv` tiene errores,
+`Subir-A-La-Nube.ps1` se cancela **antes** de subir y te dice qué corregir
+(nada de errores como el que dejó el catálogo en blanco una vez).
+
+| Comando | Qué hace |
+|---------|----------|
+| `.\Validar-Catalogo.ps1` | Informe de errores y avisos (0 = se puede subir) |
+| `.\Validar-Catalogo.ps1 -Corregir` | Arregla lo automático y vuelve a revisar |
+| `.\Subir-A-La-Nube.ps1 -SinValidar` | Sube aunque haya errores (solo si sabes lo que haces) |
+| `.\Pruebas-Validador.ps1` | Comprueba que el validador funciona bien |
+
+---
+
 # Subir todo a la nube (GitHub)
 
 Tu espacio se sube a GitHub y queda publicado para verlo **desde el celular
@@ -140,6 +189,7 @@ Guárdala: esa es la que abres desde cualquier lugar.
 | `.\Subir-A-La-Nube.ps1 -Estado` | Dirección web, si Pages está activa |
 | `.\Subir-A-La-Nube.ps1 -Mensaje "subo manuales"` | Sube con mensaje propio |
 | `.\Subir-A-La-Nube.ps1 -Reconfigurar` | Cambiar token o repositorio |
+| `.\Subir-A-La-Nube.ps1 -SinValidar` | Subir sin pasar la revisión del catálogo |
 
 ---
 
@@ -164,7 +214,8 @@ en privado con acceso por usuario y contraseña.
 Agregar.ps1      →  guardo algo con su fecha, motivo y evento
 Eliminar.ps1     →  lo quito (queda en la papelera por si acaso)
 Restaurar.ps1    →  recupero algo de la papelera
-Subir-A-La-Nube  →  lo reflejo en la nube
+Validar-Catalogo →  reviso el catálogo (o lo hago solo al subir)
+Subir-A-La-Nube  →  valida y lo reflejo en la nube
 ```
 
 Desde la web no hace falta nada de esto: **+ Agregar**, **Modificar**,

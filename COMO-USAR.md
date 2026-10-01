@@ -18,7 +18,8 @@ cd C:\Users\Administrador\MiEspacio\_scripts
 # 3) Borra el registro Y el archivo de la carpeta (el registro va a la papelera)
 .\Eliminar.ps1 -Id 3 -BorrarArchivo
 
-# 4) Borra todas las plantillas [Ejemplo]
+# 4) Borra todas las plantillas [Ejemplo] (hoy ya no queda ninguna:
+#    se eliminaron el 2026-10-01; este comando sirve por si vuelves a crearlas)
 .\Eliminar.ps1 -TodoLosEjemplos -Silencioso
 
 # 5) Borrar sin papelera (no se puede recuperar)

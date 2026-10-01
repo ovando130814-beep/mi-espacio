@@ -111,10 +111,15 @@ cd C:\Users\Administrador\MiEspacio\_scripts
 > También puedes editar `registro.csv` directamente con Excel o el Bloc de notas
 > y luego ejecutar `.\_scripts\Generar-Indice.ps1` para actualizar el visor.
 
-## Las 3 entradas marcadas `[Ejemplo]`
+## Ya no hay registros `[Ejemplo]`
 
-Son plantillas de referencia. Bórralas cuando quieras: elimina esas filas de `registro.csv`
-y ejecuta `.\_scripts\Generar-Indice.ps1`.
+Las plantillas de prueba se **eliminaron el 1 de octubre de 2026**: tu lista y tu
+`registro.csv` solo contienen tus propios elementos. Si algún día vuelves a crear
+ejemplos y quieres quitarte todos de una vez:
+
+```powershell
+.\_scripts\Eliminar.ps1 -TodoLosEjemplos -Silencioso
+```
 
 ---
 

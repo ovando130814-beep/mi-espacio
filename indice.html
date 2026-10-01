@@ -79,7 +79,7 @@
     border-radius:9px;padding:9px 10px;font-size:14px;min-height:42px}
   .graf{margin-top:12px;display:grid;gap:12px;grid-template-columns:1fr}
   @media(min-width:760px){ .graf{grid-template-columns:1fr 1fr} }
-  .graf h3{margin:0 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+  .graf h2{margin:0 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
   .barra{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12.5px}
   .barra .nom{flex:0 0 auto;min-width:112px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .barra .pista{flex:1;background:var(--panel2);border-radius:6px;height:16px;overflow:hidden}
@@ -234,7 +234,7 @@
             border-radius:7px;overflow:hidden;margin-top:9px}
   .revBarra i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
   .revSec{margin-top:15px}
-  .revSec h4{margin:0 0 8px;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .revSec h3{margin:0 0 8px;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .revItem{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);
            background:var(--panel2);border-radius:10px;padding:9px 11px;font-size:13px;margin-bottom:7px}
   .revItem.mal{border-color:var(--mal)}
@@ -314,8 +314,8 @@
       <button id="btnLimpiar" style="align-self:flex-end">Limpiar filtros</button>
     </div>
     <div class="graf">
-      <div><h3>Por categoría</h3><div id="gCat"></div></div>
-      <div><h3>Por mes</h3><div id="gMes"></div></div>
+      <div><h2>Por categoría</h2><div id="gCat"></div></div>
+      <div><h2>Por mes</h2><div id="gMes"></div></div>
     </div>
     <button id="btnRevisarM" style="width:100%;margin-top:12px">🩺 Revisar datos, archivos y enlaces del espacio</button>
   </div>
@@ -631,7 +631,7 @@ function revBloque(titulo, items, okTxt){
   const cuenta = items.length ? String(items.length) : "✓";
   const cuerpo = items.length ? items.map(revItemHTML).join("")
     : '<div class="revItem"><span class="ico">✓</span><span class="txt">' + esc(okTxt || "Sin problemas") + '</span></div>';
-  return '<div class="revSec"><h4>' + esc(titulo) +
+  return '<div class="revSec"><h3>' + esc(titulo) +
          ' <span class="revCuenta ' + clase + '">' + cuenta + '</span></h4>' + cuerpo + '</div>';
 }
 async function probarURL(u, ms){

@@ -314,28 +314,28 @@
 </nav>
 
 <!-- ===================== FORMULARIO ===================== -->
-<div class="fondo" id="fondoForm" role="dialog" aria-modal="true">
+<div class="fondo" id="fondoForm" role="dialog" aria-modal="true" aria-labelledby="formTitulo">
   <div class="caja">
     <h2 id="formTitulo">Agregar elemento</h2>
     <div class="ayuda">Todo lo que guardes queda con su fecha y el motivo por el que lo guardas.</div>
 
-    <div class="campo"><label>Título *</label><input id="f_titulo" placeholder="Ej. Manual de inventario"></div>
+    <div class="campo"><label for="f_titulo">Título *</label><input id="f_titulo" placeholder="Ej. Manual de inventario"></div>
     <div class="fila">
-      <div class="campo"><label>Fecha</label><input id="f_fecha" type="date"></div>
-      <div class="campo"><label>Categoría</label>
+      <div class="campo"><label for="f_fecha">Fecha</label><input id="f_fecha" type="date"></div>
+      <div class="campo"><label for="f_cat">Categoría</label>
         <select id="f_cat">
           <option>Personal</option><option>URL-Trabajo</option><option>Manual</option>
           <option>Imagen-Sistema</option><option>Nota</option>
         </select></div>
     </div>
-    <div class="campo"><label>Motivo (¿por qué lo guardas?)</label>
+    <div class="campo"><label for="f_motivo">Motivo (¿por qué lo guardas?)</label>
       <textarea id="f_motivo" placeholder="Ej. Lo necesito para el inventario anual"></textarea></div>
-    <div class="campo"><label>Evento / situación</label>
+    <div class="campo"><label for="f_evento">Evento / situación</label>
       <input id="f_evento" placeholder="Ej. Reunión con coordinación"></div>
-    <div class="campo"><label>URL (si es un enlace)</label><input id="f_url" placeholder="https://…"></div>
+    <div class="campo"><label for="f_url">URL (si es un enlace)</label><input id="f_url" placeholder="https://…"></div>
 
     <div class="campo">
-      <label>Archivo</label>
+      <label for="fileSubir">Archivo</label>
       <div class="subida" id="btnSubir" role="button" tabindex="0">📎 Adjuntar archivo — se sube a la nube desde el celular o la PC</div>
       <input type="file" id="fileSubir" class="oculto">
       <input id="f_ubi" class="oculto" placeholder="03-Manuales/manual.pdf">
@@ -355,15 +355,15 @@
 </div>
 
 <!-- ===================== CONEXIÓN ===================== -->
-<div class="fondo" id="fondoConn" role="dialog" aria-modal="true">
+<div class="fondo" id="fondoConn" role="dialog" aria-modal="true" aria-labelledby="connTitulo">
   <div class="caja">
-    <h2>Conectar con GitHub</h2>
+    <h2 id="connTitulo">Conectar con GitHub</h2>
     <div class="ayuda">Para <b>Agregar</b>, <b>Modificar</b> y <b>Eliminar</b> desde esta web hace
       falta un token que se guarda <b>solo en este navegador</b>.</div>
 
-    <div class="campo"><label>Token de GitHub</label>
+    <div class="campo"><label for="c_token">Token de GitHub</label>
       <input id="c_token" type="password" placeholder="ghp_…" autocomplete="off"></div>
-    <div class="campo"><label>Repositorio</label><input id="c_repo" disabled></div>
+    <div class="campo"><label for="c_repo">Repositorio</label><input id="c_repo" disabled></div>
 
     <div class="aviso-b">
       <b>Crearlo (una vez):</b> github.com → Settings → Developer settings → Personal access tokens →
@@ -381,7 +381,7 @@
 </div>
 
 <!-- ===================== CONFIRMAR MOVER A PAPELERA ===================== -->
-<div class="fondo" id="fondoBorra" role="dialog" aria-modal="true">
+<div class="fondo" id="fondoBorra" role="dialog" aria-modal="true" aria-labelledby="b_titulo">
   <div class="caja">
     <h2 id="b_titulo">Mover a la papelera</h2>
     <div class="ayuda" id="b_texto">¿Seguro?</div>
@@ -397,9 +397,9 @@
 </div>
 
 <!-- ===================== PAPELERA E HISTORIAL ===================== -->
-<div class="fondo" id="fondoPap" role="dialog" aria-modal="true">
+<div class="fondo" id="fondoPap" role="dialog" aria-modal="true" aria-labelledby="papTitulo">
   <div class="caja">
-    <h2>Papelera e historial</h2>
+    <h2 id="papTitulo">Papelera e historial</h2>
     <div class="ayuda">Aquí vuelven los elementos que quitaste y puedes devolver el catálogo
       a como estaba en una fecha anterior.</div>
 
@@ -418,7 +418,7 @@
 </div>
 
 <!-- ===================== CONFIRMAR ACCIÓN ===================== -->
-<div class="fondo" id="fondoOk" role="dialog" aria-modal="true">
+<div class="fondo" id="fondoOk" role="dialog" aria-modal="true" aria-labelledby="okTitulo">
   <div class="caja">
     <h2 id="okTitulo">Confirmar</h2>
     <div class="ayuda" id="okTexto"></div>
@@ -434,7 +434,7 @@
 </div>
 
 <!-- ===================== VISOR DE IMAGEN ===================== -->
-<div class="fondo" id="fondoImg" role="dialog" aria-modal="true">
+<div class="fondo" id="fondoImg" role="dialog" aria-modal="true" aria-label="Visor de imagen">
   <div style="text-align:center">
     <img class="verimg" id="imgVer" alt="">
     <div class="btns" style="justify-content:center">

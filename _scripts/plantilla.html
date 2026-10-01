@@ -504,7 +504,7 @@ const CARPETAS = {"Personal":"01-Archivos-Personales","URL-Trabajo":"02-URLs-Tra
 let activos = new Set(CATS);
 let vista = "lista";
 let agrupa = true;
-let editando = null, borrando = null;
+let editando = null, editandoOriginal = null, borrando = null;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -832,16 +832,29 @@ function mostrarProblemas(titulo, ayuda, errs, avis){
 }
 
 /* ============================================== GUARDAR EN LA NUBE */
-async function guardarCSV(nuevo, mensaje){
+/* Guarda un cambio LEEYENDO antes lo que hay en la nube, para no pisar lo que
+   se haya agregado o borrado desde otro equipo u otra pestaña.
+   operacion(filas) devuelve las filas finales, o null si ya no aplica. */
+async function editarCatalogo(operacion, mensaje){
   const info = repoInfo();
   if(!info) throw new Error("No se detectó el repositorio");
   const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv";
   const actual = await gh("GET", ruta+"?ref=main");
-  await gh("PUT", ruta, {message:mensaje, content:aBase64(aCSV(nuevo.map(aFila))), branch:"main",
-                         sha: actual? actual.sha : undefined});
+  const crudas = parseCSV(deBase64(actual.content));
+  const filas = crudas.map(aObj);
+  const nuevas = operacion(filas);
+  if(!nuevas) return null;                       /* ya no existe en la nube */
+  if(aCSV(nuevas.map(aFila)) === aCSV(filas.map(aFila))) return crudas;  /* nada cambió: sin commit */
+  await gh("PUT", ruta, {message:mensaje, content:aBase64(aCSV(nuevas.map(aFila))),
+                         branch:"main", sha: actual.sha});
   const tras = await gh("GET", ruta+"?ref=main");
   return parseCSV(deBase64(tras.content));
 }
+/* ¿es el mismo elemento escrito en dos equipos o pestañas? */
+const mismaFila = (a, b) => (a.t||"").trim() === (b.t||"").trim() &&
+                            (a.f||"").trim() === (b.f||"").trim() &&
+                            (a.c||"").trim() === (b.c||"").trim() &&
+                            (a.u||"").trim() === (b.u||"").trim();
 async function borrarArchivo(rutaRel){
   const info = repoInfo();
   const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/"+encodeURI(rutaRel);
@@ -1080,6 +1093,7 @@ function cerrar(id){ $(id).classList.remove("on"); }
 
 function editar(i){
   editando = i;
+  editandoOriginal = DATOS[i];
   const o = DATOS[i];
   ocultarProgreso();
   $("formTitulo").textContent = "Modificar elemento";
@@ -1094,6 +1108,7 @@ function editar(i){
 }
 function agregar(){
   editando = null;
+  editandoOriginal = null;
   ocultarProgreso();
   $("formTitulo").textContent = "Agregar elemento";
   ["f_titulo","f_motivo","f_evento","f_url","f_ubi"].forEach(id=>$(id).value="");
@@ -1132,11 +1147,21 @@ async function guardar(){
   }
   const btn = $("fGuardar"); btn.disabled = true; btn.textContent = "Guardando…";
   try{
-    const tras = await guardarCSV(nuevo, (editando===null?"Agrega: ":"Modifica: ")+t);
+    const esAlta = editando === null;
+    const original = editandoOriginal;
+    /* se aplica el cambio SOBRE lo que hay en la nube (no sobre lo que esta
+       pestaña cargó al abrir), así no se pisa nada de otro equipo */
+    const tras = await editarCatalogo(filas => {
+      if(esAlta) return filas.concat([obj]);
+      const k = filas.findIndex(x => mismaFila(x, original));
+      if(k < 0) return null;
+      const copia = filas.slice(); copia[k] = obj; return copia;
+    }, (esAlta ? "Agrega: " : "Modifica: ")+t);
+    if(!tras) throw new Error("Ese elemento ya no está en la nube (¿lo borraste en otro equipo?): recarga la página");
     DATOS = tras.map(aObj);
     cerrar("fondoForm");
     renderTodo();
-    toast((editando===null ? "Agregado y publicado ✓" : "Modificado y publicado ✓") +
+    toast((esAlta ? "Agregado y publicado ✓" : "Modificado y publicado ✓") +
       (v.avisos.length ? " · " + v.avisos.length + " aviso(s): míralos con 🩺" : ""));
   }catch(e){ toast("No se pudo guardar: "+e.message, true); }
   btn.disabled = false; btn.textContent = "Guardar";
@@ -1183,27 +1208,31 @@ async function confirmarBorrar(){
       if(!o) throw new Error("Ese elemento ya no existe");
       const entrada = {f:o.f||"", c:o.c||"Nota", t:o.t||"", u:o.u||"", m:o.m||"", e:o.e||"",
                        fb:new Date().toISOString().slice(0,16)};
-      const nuevaPap = PAPELERA.concat([entrada]);
-      /* 1) primero guardamos el respaldo en la papelera */
-      await guardarPapelera(nuevaPap, "A papelera: "+o.t);
-      /* 2) después lo quitamos del catálogo */
-      const nuevos = DATOS.slice(); nuevos.splice(i,1);
-      DATOS = (await guardarCSV(nuevos, "A papelera: "+o.t)).map(aObj);
+      /* 1) primero guardamos el respaldo en la papelera (sumado a lo que ya
+         haya en la nube, por si otro equipo guardó algo mientras tanto) */
+      PAPELERA = await editarPapelera(
+        s => s.some(x => mismaEntrada(x, entrada)) ? s : s.concat([entrada]),
+        "A papelera: "+o.t);
+      /* 2) después lo quitamos del catálogo (buscándolo en la nube) */
+      const tras = await editarCatalogo(filas => {
+        const k = filas.findIndex(x => mismaFila(x, o));
+        if(k < 0) return filas;                  /* ya no está: nada que quitar */
+        const c = filas.slice(); c.splice(k, 1); return c;
+      }, "A papelera: "+o.t);
+      if(tras) DATOS = tras.map(aObj);
       if(conArchivo && o.u && !esUrl(o.u)){
         try{ await borrarArchivo(o.u); }catch(e){ toast("El archivo no se pudo quitar: "+e.message, true); }
       }
-      PAPELERA = nuevaPap;
       renderTodo(); pintarPapeleraBoton();
       toast("En la papelera ✓  puedes restaurarlo");
     } else {
       const p = PAPELERA[i];
       if(!p) throw new Error("Ese elemento ya no está en la papelera");
-      const nuevaPap = PAPELERA.filter((_,j)=>j!==i);
-      await guardarPapelera(nuevaPap, "Elimina de papelera: "+p.t);
+      PAPELERA = await editarPapelera(s => s.filter(x => !mismaEntrada(x, p)),
+                                      "Elimina de papelera: "+p.t);
       if(conArchivo && p.u && !esUrl(p.u)){
         try{ await borrarArchivo(p.u); }catch(e){ toast("El archivo no se pudo borrar: "+e.message, true); }
       }
-      PAPELERA = nuevaPap;
       renderPapelera(); pintarPapeleraBoton();
       toast("Eliminado definitivamente ✓");
     }
@@ -1352,8 +1381,9 @@ async function subirArchivos(archivos){
       return;
     }
     try{
-      const tras = await guardarCSV(DATOS.concat(registros),
+      const tras = await editarCatalogo(filas => filas.concat(registros),
         "Agrega " + registros.length + " archivo(s): " + registros.slice(0,3).map(r => r.t).join(", "));
+      if(!tras) throw new Error("No se pudo actualizar el catálogo");
       DATOS = tras.map(aObj);
       ocultarProgreso();
       cerrar("fondoForm");
@@ -1439,15 +1469,24 @@ async function leerPapelera(){
   }
   return bajarPapelera();
 }
-async function guardarPapelera(nuevo, mensaje){
+/* La papelera también se edita partiendo de lo que hay en la nube */
+async function editarPapelera(operacion, mensaje){
   const info = repoInfo();
   if(!info) throw new Error("No se detectó el repositorio");
   const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/papelera.json";
-  let actual = null;
-  try{ actual = await gh("GET", ruta+"?ref=main"); }catch(e){}
-  await gh("PUT", ruta, {message:mensaje, content:aBase64(JSON.stringify(nuevo,null,1)),
+  let actual = null, servidor = [];
+  try{
+    actual = await gh("GET", ruta+"?ref=main");
+    const j = JSON.parse(deBase64(actual.content));
+    servidor = Array.isArray(j) ? j : [];
+  }catch(e){ servidor = []; }
+  const nuevas = operacion(servidor) || [];
+  if(JSON.stringify(nuevas) === JSON.stringify(servidor)) return servidor;
+  await gh("PUT", ruta, {message:mensaje, content:aBase64(JSON.stringify(nuevas,null,1)),
                          branch:"main", sha: actual? actual.sha : undefined});
+  return nuevas;
 }
+const mismaEntrada = (a, b) => ["f","c","t","u","m","e","fb"].every(k => (a[k]||"") === (b[k]||""));
 async function refrescar(){
   const r = await leerRegistro(); if(r) DATOS = r.map(aObj);
   PAPELERA = await leerPapelera();
@@ -1566,15 +1605,14 @@ async function restaurarPapelera(i){
                toast("Conecta tu cuenta de GitHub para restaurar", true); return; }
   $("papCuerpo").style.pointerEvents = "none";
   try{
-    const ya = DATOS.some(x => (x.f||"")===(p.f||"") && (x.t||"")===(p.t||"") && (x.u||"")===(p.u||""));
-    if(!ya){
-      const tras = await guardarCSV(DATOS.concat([{f:p.f||"",c:p.c||"Nota",t:p.t||"",u:p.u||"",m:p.m||"",e:p.e||""}]),
-                                    "Restaura: "+p.t);
-      DATOS = tras.map(aObj);
-    }
-    const nuevaPap = PAPELERA.filter((_,j)=>j!==i);
-    await guardarPapelera(nuevaPap, "Saca de papelera: "+p.t);
-    PAPELERA = nuevaPap;
+    const reg = {f:p.f||"", c:p.c||"Nota", t:p.t||"", u:p.u||"", m:p.m||"", e:p.e||""};
+    /* se agrega SOBRE lo que hay en la nube (y sin duplicarlo) */
+    const tras = await editarCatalogo(filas =>
+      filas.some(x => mismaFila(x, reg)) ? filas : filas.concat([reg]),
+      "Restaura: "+p.t);
+    if(tras) DATOS = tras.map(aObj);
+    PAPELERA = await editarPapelera(s => s.filter(x => !mismaEntrada(x, p)),
+                                    "Saca de papelera: "+p.t);
     renderTodo(); renderPapelera(); pintarPapeleraBoton();
     toast("Restaurado ✓ ya está en tu lista");
   }catch(e){ toast("No se pudo restaurar: "+e.message, true); }
@@ -1596,7 +1634,7 @@ async function vaciarPapelera(){
         if(p.u && !esUrl(p.u)){ try{ await borrarArchivo(p.u); }catch(e){} }
       }
     }
-    await guardarPapelera([], "Vacía la papelera ("+n+" elementos)");
+    await editarPapelera(() => [], "Vacía la papelera ("+n+" elementos)");
     PAPELERA = [];
     renderPapelera(); pintarPapeleraBoton();
     toast("Papelera vacía ✓");

@@ -68,6 +68,15 @@ pública lo muestra). Si usas otro equipo, lo conectas ahí también. Para quita
 Después de cada cambio la web vuelve a leer `registro.csv` (directo de GitHub) y
 muestra el resultado al instante.
 
+### Si usas varios equipos o varias pestañas
+
+Cada guardado se aplica **sobre lo que hay en la nube** (la página vuelve a
+leer `registro.csv` justo antes de escribir), así que lo que hagas en el
+celular y lo que hagas en la PC **no se pisan**: si borras algo en un equipo y
+agregas algo en otro, **los dos cambios quedan**. Y si intentas modificar un
+elemento que ya no existe en la nube, la web te avisa en lugar de escribir
+encima. Si dudas, recarga la página antes de guardar.
+
 ### Subir fotos y archivos desde la web (celular o PC)
 
 Dentro del formulario (**+ Agregar** o **Modificar**) hay dos botones:

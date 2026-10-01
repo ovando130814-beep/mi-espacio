@@ -24,6 +24,9 @@ Ahí ves todo en una sola pantalla, con:
 - **📷 Subir archivos desde la web**: botón para **tomar foto** con la cámara
   del celular, elegir **varios archivos a la vez** (con barra de progreso y un
   registro por archivo) y **reemplazar el repetido** en lugar de duplicarlo.
+- **📦 Respaldo en 1 clic**: un botón descarga **todo** tu espacio (catálogo,
+  papelera y carpetas) en un solo archivo `.zip`, con un `LEEME` dentro con los
+  pasos para restaurarlo si algún día hace falta.
 - Diseño **responsivo**: en PC con barra lateral arriba, en el celular con
   barra de botones abajo.
 

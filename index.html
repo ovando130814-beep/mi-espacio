@@ -303,6 +303,7 @@
     <button class="solo-grande" id="btnConn">Conectar</button>
     <button class="solo-grande" id="btnPapelera" title="Papelera e historial: recuperar lo borrado">🗑 Papelera</button>
     <button class="solo-grande" id="btnRevisar" title="Comprobar datos, archivos y enlaces">🩺 Revisar</button>
+    <button class="solo-grande" id="btnRespaldo" title="Descargar todo el espacio en un archivo .zip">📦 Respaldo</button>
   </div>
 
   <div class="chips" id="chips" role="group" aria-label="Filtrar por categoría"></div>
@@ -318,6 +319,7 @@
       <div><h2>Por mes</h2><div id="gMes"></div></div>
     </div>
     <button id="btnRevisarM" style="width:100%;margin-top:12px">🩺 Revisar datos, archivos y enlaces del espacio</button>
+    <button id="btnRespaldoM" style="width:100%;margin-top:8px">📦 Descargar todo el espacio en un archivo .zip (respaldo)</button>
   </div>
 </header>
 
@@ -546,12 +548,13 @@ function aBase64Bytes(bytes){
   return btoa(bin);
 }
 const aBase64 = s => aBase64Bytes(new TextEncoder().encode(s));
-function deBase64(b){
+function deBase64Bytes(b){
   const bin = atob(b||"");
   const bytes = new Uint8Array(bin.length);
   for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
+  return bytes;
 }
+const deBase64 = s => new TextDecoder().decode(deBase64Bytes(s));
 
 /* =============================================================== CSV */
 function parseCSV(texto){
@@ -829,6 +832,173 @@ function mostrarProblemas(titulo, ayuda, errs, avis){
   $("revCuerpo").innerHTML = revBloque("Hay que corregirlo", errs, "Sin problemas") +
     (avis.length ? revBloque("Avisos (se puede guardar igual)", avis, "") : "");
   abrir("fondoRev");
+}
+
+/* ============================================================= RESPALDO */
+/* ZIP "guardado" (sin librerías ni internet extra): cabeceras locales,
+   directorio central y fin. Los archivos se meten tal cual (sin comprimir),
+   que para PDFs e imágenes da el mismo peso. */
+const CRC32 = (() => {
+  const t = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i < bytes.length; i++) c = CRC32[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function crearZip(entradas){                 /* [{ruta, bytes}] → Blob .zip */
+  if(!entradas.length) throw new Error("No hay nada que poner en el ZIP");
+  if(entradas.length > 65535) throw new Error("Hay demasiados archivos para un solo ZIP (" + entradas.length + ")");
+  const hoy = new Date();
+  const fecha = ((hoy.getFullYear() - 1980) << 9) | ((hoy.getMonth() + 1) << 5) | hoy.getDate();
+  const hora  = (hoy.getHours() << 11) | (hoy.getMinutes() << 5) | (hoy.getSeconds() >> 1);
+  const partes = [], centro = [];
+  let offset = 0;
+  entradas.forEach(e => {
+    const nom = new TextEncoder().encode(e.ruta);
+    const crc = crc32(e.bytes), len = e.bytes.length;
+    const loc = new Uint8Array(30 + nom.length), dv = new DataView(loc.buffer);
+    dv.setUint32(0, 0x04034b50, true); dv.setUint16(4, 20, true);
+    dv.setUint16(6, 0x0800, true);     dv.setUint16(8, 0, true);      /* UTF-8, guardado */
+    dv.setUint16(10, hora, true);      dv.setUint16(12, fecha, true);
+    dv.setUint32(14, crc, true);       dv.setUint32(18, len, true);
+    dv.setUint32(22, len, true);       dv.setUint16(26, nom.length, true);
+    dv.setUint16(28, 0, true);         loc.set(nom, 30);
+    const cen = new Uint8Array(46 + nom.length), dc = new DataView(cen.buffer);
+    dc.setUint32(0, 0x02014b50, true); dc.setUint16(4, 20, true);
+    dc.setUint16(6, 20, true);         dc.setUint16(8, 0x0800, true);
+    dc.setUint16(10, 0, true);         dc.setUint16(12, hora, true);
+    dc.setUint16(14, fecha, true);     dc.setUint32(16, crc, true);
+    dc.setUint32(20, len, true);       dc.setUint32(24, len, true);
+    dc.setUint16(28, nom.length, true);dc.setUint16(30, 0, true);
+    dc.setUint16(32, 0, true);         dc.setUint16(34, 0, true);
+    dc.setUint16(36, 0, true);         dc.setUint32(38, 0, true);
+    dc.setUint32(42, offset, true);    cen.set(nom, 46);
+    partes.push(loc, e.bytes); centro.push(cen);
+    offset += loc.length + len;
+  });
+  const tamCD = centro.reduce((s, c) => s + c.length, 0);
+  const fin = new Uint8Array(22), df = new DataView(fin.buffer);
+  df.setUint32(0, 0x06054b50, true);
+  df.setUint16(8, entradas.length, true);
+  df.setUint16(10, entradas.length, true);
+  df.setUint32(12, tamCD, true);
+  df.setUint32(16, offset, true);
+  return new Blob(partes.concat(centro, [fin]), {type:"application/zip"});
+}
+/* lo que se respalda: las carpetas de datos + catálogo + papelera */
+const esDatoDeEspacio = p => /^0[1-5]-/.test(p) || p === "registro.csv" || p === "papelera.json";
+/* bytes de un archivo del repo: primero raw (no pide token), luego la API */
+async function bytesDeItem(info, item){
+  const ruta = item.path.split("/").map(encodeURIComponent).join("/");
+  try{
+    const r = await fetch("https://raw.githubusercontent.com/" + info.owner + "/" + info.repo +
+                          "/main/" + ruta, {cache:"no-store"});
+    if(r.ok) return new Uint8Array(await r.arrayBuffer());
+  }catch(e){ /* sin red o repo privado: se usa la API con token */ }
+  const d = await gh("GET", "/repos/" + info.owner + "/" + info.repo + "/git/blobs/" + item.sha);
+  return deBase64Bytes(d.content);
+}
+async function respaldar(){
+  if(revTrabajando) return;
+  const info = repoInfo();
+  if(!info){ toast("El respaldo solo funciona en la web publicada", true); return; }
+  revTrabajando = true;
+  $("revTitulo").textContent = "📦 Descargar respaldo (ZIP)";
+  $("revAyuda").textContent = "Descarga una copia de TODO tu espacio en un solo archivo .zip: el catálogo, " +
+    "la papelera y todas tus carpetas. Guárdalo en tu PC, en un USB o mándatelo por correo.";
+  $("revOtra").classList.add("oculto");
+  $("revCopiar").classList.add("oculto");
+  $("revCuerpo").innerHTML = '<div class="revProgreso" role="status" aria-live="polite">' +
+    '<span id="revTxt">Buscando los archivos del espacio…</span><div class="revBarra"><i id="revBar"></i></div></div>';
+  abrir("fondoRev");
+  const paso = (txt, p) => {
+    const t = $("revTxt"), b = $("revBar");
+    if(t) t.textContent = txt;
+    if(b) b.style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + "%";
+  };
+  try{
+    /* 1) qué hay en la nube */
+    const arbol = await gh("GET", "/repos/" + info.owner + "/" + info.repo + "/git/trees/main?recursive=1");
+    const items = (arbol.tree || []).filter(x => x && x.type === "blob" && esDatoDeEspacio(x.path));
+    if(!items.length) throw new Error("No encontré archivos que respaldar (el espacio está vacío)");
+    const LIM = 400 * 1024 * 1024;
+    const pesoTotal = items.reduce((s, x) => s + (x.size || 0), 0);
+    if(pesoTotal > LIM) throw new Error("tu espacio pesa " + Math.round(pesoTotal / 1048576) +
+      " MB y desde el navegador no pasan de 400 MB: baja las carpetas por partes o pídemelo y te lo preparo en varios ZIP");
+    /* 2) bajarlos (4 a la vez; si uno falla seguimos con los demás) */
+    const entradas = [], fallan = [];
+    let listos = 0, cursor = 0, peso = 0;
+    const trabajador = async () => {
+      while(true){
+        const k = cursor++;
+        if(k >= items.length) return;
+        const it = items[k];
+        try{
+          const bytes = await bytesDeItem(info, it);
+          entradas.push({ruta: it.path, bytes});
+          peso += bytes.length;
+        }catch(e){
+          fallan.push({t: it.path + " — no se pudo bajar: " + e.message, tipo:"mal", ico:"✗"});
+        }
+        listos++;
+        paso("Descargando (" + listos + "/" + items.length + "): " + it.path,
+             .05 + .85 * listos / items.length);
+      }
+    };
+    await Promise.all(Array.from({length: Math.min(4, Math.max(1, items.length))}, trabajador));
+    if(!entradas.length) throw new Error("Ningún archivo se pudo descargar (" + fallan[0].t + ")");
+    /* 3) armar el ZIP y bajarlo */
+    paso("Preparando el archivo .zip…", .95);
+    const fecha = new Date().toISOString().slice(0, 10);
+    entradas.unshift({ruta: "LEEME-RESPALDO.txt", bytes: new TextEncoder().encode(
+      "RESPALDO DE MI ESPACIO\r\n" +
+      "Generado: " + new Date().toLocaleString("es") + "\r\n" +
+      "Sitio: https://" + info.owner + ".github.io/" + info.repo + "/\r\n\r\n" +
+      "CONTENIDO\r\n" +
+      "  registro.csv     tu catalogo (fecha, categoria, titulo, tipo, ubicacion, URL, motivo, evento)\r\n" +
+      "  papelera.json    lo que borraste (se puede restaurar)\r\n" +
+      "  01- … 05-        tus archivos, fotos y documentos (carpetas)\r\n" +
+      "  este archivo     estas instrucciones\r\n\r\n" +
+      "COMO RESTAURAR (descomprime este ZIP y sigue los pasos)\r\n" +
+      "  1) Copia a tu carpeta MiEspacio las carpetas 01-… a 05-…, registro.csv y papelera.json.\r\n" +
+      "  2) Abre la web (o ejecuta _scripts\\Generar-Indice.ps1) para verlo todo de nuevo.\r\n" +
+      "  3) Si a un archivo le falta su registro, vuelve a subirlo desde la web.\r\n")});
+    const blob = crearZip(entradas);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "MiEspacio-respaldo-" + fecha + ".zip";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    /* 4) resumen */
+    const tam = peso < 1048576 ? Math.max(1, Math.round(peso / 1024)) + " KB"
+                               : (peso / 1048576).toFixed(1) + " MB";
+    let h = '<div class="revRes">' +
+      '<span class="revCuenta ok">✓ ' + entradas.length + ' archivo(s) en el ZIP</span>' +
+      '<span class="revCuenta ' + (fallan.length ? "mal" : "ok") + '">' +
+      (fallan.length ? "✗ " + fallan.length + " que no entraron" : "sin faltantes") + '</span>' +
+      '<span class="revCuenta ok">' + tam + '</span></div>';
+    h += revBloque("Archivos del respaldo", fallan,
+      entradas.length + " archivo(s) incluidos (catálogo, papelera y carpetas)");
+    if(arbol.truncated) h += revBloque("Aviso",
+      [{t: "GitHub avisó que la lista de archivos vino incompleta (espacio muy grande): comprueba que el ZIP traiga todo.",
+        tipo:"av", ico:"⚠"}], "");
+    $("revCuerpo").innerHTML = h;
+    toast(fallan.length ? "Respaldo descargado, pero faltaron " + fallan.length + " archivo(s) ⚠"
+                        : "Respaldo descargado ✓ (" + entradas.length + " archivos, " + tam + ")",
+          fallan.length > 0);
+  }catch(e){
+    $("revCuerpo").innerHTML = '<div class="revItem mal"><span class="ico">✗</span><span class="txt">' +
+      esc("No se pudo preparar el respaldo: " + e.message) + '</span></div>';
+    toast("No se pudo preparar el respaldo", true);
+  }
+  revTrabajando = false;
 }
 
 /* ============================================== GUARDAR EN LA NUBE */
@@ -1708,6 +1878,8 @@ $("btnPapelera").onclick = abrirPapelera;
 $("mPapelera").onclick = abrirPapelera;
 $("btnRevisar").onclick = revisar;
 $("btnRevisarM").onclick = revisar;
+$("btnRespaldo").onclick = respaldar;
+$("btnRespaldoM").onclick = respaldar;
 $("revCerrar").onclick = () => cerrar("fondoRev");
 $("revOtra").onclick = revisar;
 $("revCopiar").onclick = copiarInforme;

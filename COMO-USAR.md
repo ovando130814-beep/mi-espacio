@@ -169,6 +169,38 @@ cd C:\Users\Administrador\MiEspacio\_scripts
 
 ---
 
+# 📦 Descargar un respaldo (ZIP)
+
+Un botón te baja **todo tu espacio de una vez** en un solo archivo
+`MiEspacio-respaldo-AAAA-MM-DD.zip`:
+
+- `registro.csv` — tu catálogo completo.
+- `papelera.json` — lo que borraste (para poder restaurarlo).
+- Todas las carpetas `01-…` a `05-…` (archivos, fotos, documentos).
+- `LEEME-RESPALDO.txt` — los pasos para restaurarlo, dentro del mismo ZIP.
+
+### Dónde está
+
+| Dónde | Botón |
+|---|---|
+| **PC** | Arriba, junto a 🩺 Revisar: **📦 Respaldo** |
+| **Celular** | Barra de abajo → **⚙ Filtros** → **📦 Descargar todo el espacio en un archivo .zip** |
+
+### Cómo usarlo
+
+1. Pulsa el botón (no hace falta estar conectado: lo baja directo de la nube).
+2. Verás la barra **Descargando (3/12): 02-URLs-Trabajo/…** y al final el
+   resumen **✓ 12 archivo(s) en el ZIP** con el peso y los que falten.
+3. Guarda el `.zip` en tu PC, en un USB o mándatelo por correo.
+
+> **Es tu copia de seguridad**: guárdala de vez en cuando, por si un día se
+> borra algo por error o pierdes el acceso a la cuenta. Si algún archivo no se
+> puede bajar, el respaldo **igual se descarga** con los demás y te dice cuáles
+> faltaron. El límite desde el navegador es de 400 MB por ZIP (si tu espacio
+> crece más allá, te lo preparo por partes).
+
+---
+
 # Subir todo a la nube (GitHub)
 
 Tu espacio se sube a GitHub y queda publicado para verlo **desde el celular

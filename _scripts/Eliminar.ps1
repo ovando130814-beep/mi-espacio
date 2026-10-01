@@ -1,18 +1,20 @@
 ﻿<#
-  Elimina un elemento de registro.csv (y opcionalmente su archivo físico),
-  y regenera indice.html.
+  Quita un elemento de registro.csv y lo deja en papelera.json (recuperable
+  desde la web o con Restaurar.ps1), borrando opcionalmente su archivo fisico.
 
   Ejemplos:
     .\Eliminar.ps1                          # busca por texto y pregunta
     .\Eliminar.ps1 -Buscar "inventario"     # muestra los que coinciden y elige
-    .\Eliminar.ps1 -Id 3                    # borra por numero de la lista
-    .\Eliminar.ps1 -Id 3 -BorrarArchivo     # borra el registro Y el archivo
-    .\Eliminar.ps1 -TodoLosEjemplos         # borra solo las plantillas [Ejemplo]
+    .\Eliminar.ps1 -Id 3                    # pasa por la papelera
+    .\Eliminar.ps1 -Id 3 -BorrarArchivo     # papelera + borra el archivo
+    .\Eliminar.ps1 -Id 3 -Definitivo        # borra sin papelera (no se recupera)
+    .\Eliminar.ps1 -TodoLosEjemplos         # pasa por la papelera las plantillas [Ejemplo]
 #>
 param(
   [int]$Id = 0,
   [string]$Buscar = '',
   [switch]$BorrarArchivo,
+  [switch]$Definitivo,
   [switch]$TodoLosEjemplos,
   [switch]$Silencioso
 )
@@ -92,6 +94,21 @@ if ($BorrarArchivo) {
   }
 }
 
+# Papelera: lo borrado aqui se recupera con Restaurar.ps1 o desde la web
+. (Join-Path $PSScriptRoot 'Papelera.ps1')
+$papPath = Join-Path $Raiz 'papelera.json'
+$papelera = @(Get-Papelera $papPath)
+if (-not $Definitivo) {
+  $ahora = (Get-Date).ToString('yyyy-MM-ddTHH:mm')
+  foreach ($o in $objetivos) {
+    $papelera += [pscustomobject]@{
+      f = [string]$o.Fecha; c = [string]$o.Categoria; t = [string]$o.Titulo
+      u = [string]$o.Ubicacion; m = [string]$o.Motivo; e = [string]$o.Evento; fb = $ahora
+    }
+  }
+}
+Set-Papelera $papPath $papelera
+
 $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 $lineas = @('Fecha,Categoria,Titulo,Tipo,Ubicacion,URL,Motivo,Evento')
 $nuevas | ForEach-Object {
@@ -103,3 +120,9 @@ $nuevas | ForEach-Object {
 
 & (Join-Path $PSScriptRoot 'Generar-Indice.ps1') -Raiz $Raiz
 Write-Host ("Borrados: {0}  |  quedan {1} registros." -f $objetivos.Count, $nuevas.Count)
+if ($Definitivo) {
+  Write-Host "Borrado definitivo: no quedo en la papelera."
+} else {
+  Write-Host ("En papelera: {0} elemento(s). Total en papelera: {1}." -f $objetivos.Count, $papelera.Count)
+  Write-Host "Se recupera con Restaurar.ps1 o desde la web (botón 🗑 Papelera)."
+}

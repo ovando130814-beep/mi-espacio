@@ -199,6 +199,37 @@
   .subida:hover{border-color:var(--accent);color:var(--txt)}
   .verimg{max-width:min(94vw,900px);max-height:84vh;border-radius:12px;display:block}
 
+  /* ------------------------------------------- papelera e historial */
+  .pestanas{display:flex;gap:8px;margin-bottom:12px}
+  .pestanas button{flex:1;font-size:13.5px}
+  .pestanas button.on{border-color:var(--accent);color:var(--accent);font-weight:700}
+  .listaP{margin:0;padding:0;list-style:none;max-height:54vh;overflow:auto;padding-right:2px}
+  .elemP{border:1px solid var(--line);background:var(--panel2);border-radius:12px;
+         padding:11px 12px;margin-bottom:9px}
+  .elemP .tit2{font-weight:650;font-size:14.5px;word-break:break-word}
+  .elemP .sub2{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .elemP .botones{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+  .elemP .botones button{font-size:13px;padding:8px 12px;min-height:42px}
+  .histFecha{min-width:74px;font-variant-numeric:tabular-nums;font-size:12.5px;
+             color:var(--muted);text-align:right;padding-top:2px}
+  .histFecha b{display:block;color:var(--txt);font-size:15px}
+  .histItem{display:flex;gap:11px;align-items:flex-start;border-bottom:1px dashed var(--line);
+            padding:11px 2px}
+  .histItem:last-child{border-bottom:none}
+  .histCue{flex:1;min-width:0}
+  .histCue .tit{font-weight:650;font-size:14.5px;word-break:break-word}
+  .det{margin-top:8px;font-size:12.5px;color:var(--muted);background:var(--panel);
+       border:1px dashed var(--line);border-radius:9px;padding:8px 10px}
+  .restaurar .mod{border-color:var(--ok)}
+
+  @media(max-width:640px){
+    .listaP{max-height:60vh}
+    .elemP .botones button{flex:1 1 45%}
+    .histItem{flex-wrap:wrap}
+    .histItem .acciones{width:100%}
+    .histItem .acciones button{flex:1}
+  }
+
   @media(max-width:640px){
     .fecha{min-width:56px}
     .tarj{flex-direction:column;gap:8px;padding:13px}
@@ -249,6 +280,7 @@
     <button id="btnFiltros" aria-expanded="false">⚙ Filtros</button>
     <button class="pri solo-grande" id="btnAdd">+ Agregar</button>
     <button class="solo-grande" id="btnConn">Conectar</button>
+    <button class="solo-grande" id="btnPapelera" title="Papelera e historial: recuperar lo borrado">🗑 Papelera</button>
   </div>
 
   <div class="chips" id="chips" role="group" aria-label="Filtrar por categoría"></div>
@@ -277,6 +309,7 @@
   <button id="mFiltros"><span class="ico">⚙</span>Filtros</button>
   <button class="pri" id="mAdd"><span class="ico">＋</span>Agregar</button>
   <button id="mVista"><span class="ico">☰</span>Vista</button>
+  <button id="mPapelera"><span class="ico">🗑</span>Papelera</button>
   <button id="mConn"><span class="ico">🔑</span>Conectar</button>
 </nav>
 
@@ -347,18 +380,55 @@
   </div>
 </div>
 
-<!-- ===================== CONFIRMAR BORRADO ===================== -->
+<!-- ===================== CONFIRMAR MOVER A PAPELERA ===================== -->
 <div class="fondo" id="fondoBorra" role="dialog" aria-modal="true">
   <div class="caja">
-    <h2>Eliminar elemento</h2>
+    <h2 id="b_titulo">Mover a la papelera</h2>
     <div class="ayuda" id="b_texto">¿Seguro?</div>
     <div class="campo oculto" id="b_wrapArch">
-      <label><input type="checkbox" id="b_archivo" checked style="width:auto;min-height:0">
-        Borrar también el archivo del espacio</label>
+      <label><input type="checkbox" id="b_archivo" style="width:auto;min-height:0">
+        <span id="b_archivoTxt">Borrar también el archivo del espacio</span></label>
     </div>
     <div class="btns">
       <button id="bCancelar">Cancelar</button>
-      <button id="bAceptar" style="background:#c5372c;border-color:#c5372c;color:#fff">Eliminar</button>
+      <button id="bAceptar" style="background:#c5372c;border-color:#c5372c;color:#fff">Mover a papelera</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAPELERA E HISTORIAL ===================== -->
+<div class="fondo" id="fondoPap" role="dialog" aria-modal="true">
+  <div class="caja">
+    <h2>Papelera e historial</h2>
+    <div class="ayuda">Aquí vuelven los elementos que quitaste y puedes devolver el catálogo
+      a como estaba en una fecha anterior.</div>
+
+    <div class="pestanas" id="papTabs">
+      <button data-p="pap">🗑 Papelera <b id="papCont"></b></button>
+      <button data-p="hist">🕘 Historial</button>
+    </div>
+
+    <div id="papCuerpo"></div>
+
+    <div class="btns">
+      <button id="papVaciar" style="border-color:#c5372c;color:#c5372c">Vaciar papelera</button>
+      <button class="pri" id="papCerrar">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CONFIRMAR ACCIÓN ===================== -->
+<div class="fondo" id="fondoOk" role="dialog" aria-modal="true">
+  <div class="caja">
+    <h2 id="okTitulo">Confirmar</h2>
+    <div class="ayuda" id="okTexto"></div>
+    <div class="campo oculto" id="okWrapCasilla">
+      <label><input type="checkbox" id="okCasilla" style="width:auto;min-height:0">
+        <span id="okCasillaTxt"></span></label>
+    </div>
+    <div class="btns">
+      <button id="okNo">Cancelar</button>
+      <button class="pri" id="okSi">Aceptar</button>
     </div>
   </div>
 </div>
@@ -412,8 +482,9 @@ const token = () => localStorage.getItem(TK) || "";
 
 async function gh(metodo, ruta, cuerpo){
   const t = token();
-  if(!t) throw new Error("Sin token: pulsa Conectar");
-  const op = {method:metodo, headers:{Authorization:"token "+t, Accept:"application/vnd.github+json"}};
+  if(!t && metodo !== "GET") throw new Error("Sin token: pulsa Conectar");
+  const op = {method:metodo, headers:{Accept:"application/vnd.github+json"}};
+  if(t) op.headers.Authorization = "token "+t;
   if(cuerpo){ op.headers["Content-Type"]="application/json"; op.body=JSON.stringify(cuerpo); }
   const r = await fetch("https://api.github.com"+ruta, op);
   if(!r.ok){
@@ -682,7 +753,7 @@ function renderChips(){
 }
 
 function renderTodo(){
-  renderStats(); renderChips(); render(); pintarConexion(); resaltarHash();
+  renderStats(); renderChips(); render(); pintarConexion(); pintarPapeleraBoton(); resaltarHash();
 }
 function pintarConexion(){
   const con = !!token();
@@ -763,10 +834,10 @@ async function guardar(){
   const btn = $("fGuardar"); btn.disabled = true; btn.textContent = "Guardando…";
   try{
     let nuevo;
-    if(editando === null){ nuevo = DATOS.concat([obj]); await guardarCSV(nuevo, "Agrega: "+t); }
-    else { nuevo = DATOS.slice(); nuevo[editando] = obj; await guardarCSV(nuevo, "Modifica: "+t); }
-    const tras = await bajarCSV();
-    if(tras) DATOS = tras.map(aObj);
+    if(editando === null){ nuevo = DATOS.concat([obj]); }
+    else { nuevo = DATOS.slice(); nuevo[editando] = obj; }
+    const tras = await guardarCSV(nuevo, (editando===null?"Agrega: ":"Modifica: ")+t);
+    DATOS = tras.map(aObj);
     cerrar("fondoForm");
     renderTodo();
     toast(editando===null ? "Agregado y publicado ✓" : "Modificado y publicado ✓");
@@ -775,32 +846,74 @@ async function guardar(){
 }
 
 function pedirBorrar(i){
-  borrando = i;
+  borrando = {modo:"papelera", i};
   const o = DATOS[i];
-  $("b_texto").innerHTML = "Vas a eliminar <b>"+esc(o.t)+"</b>"+
-    (o.m? "<br><span style='color:var(--muted)'>"+esc(o.m)+"</span>" : "");
+  $("b_titulo").textContent = "Mover a la papelera";
+  $("b_texto").innerHTML = `Vas a quitar <b>${esc(o.t)}</b> de tu lista.<br>
+    <span style="color:var(--muted)">Quedará en la papelera y podrás
+    <b>restaurarlo</b> cuando quieras.</span>` +
+    (o.m? `<br><span style="color:var(--muted)">${esc(o.m)}</span>` : "");
   const rel = o.u && !esUrl(o.u) && !/^[a-zA-Z]:[\\/]/.test(o.u);
   $("b_wrapArch").classList.toggle("oculto", !rel);
-  $("b_archivo").checked = true;
+  $("b_archivo").checked = false;
+  $("b_archivoTxt").textContent = "Quitar también su archivo del espacio (luego no se podrá restaurar el archivo)";
+  $("bAceptar").textContent = "Mover a papelera";
+  abrir("fondoBorra");
+}
+function pedirDefinitivo(i){
+  borrando = {modo:"definitivo", i};
+  const p = PAPELERA[i] || {};
+  $("b_titulo").textContent = "Eliminar definitivamente";
+  $("b_texto").innerHTML = `Se borrará <b>${esc(p.t||"")}</b> de la papelera para siempre.`;
+  const rel = p.u && !esUrl(p.u) && !/^[a-zA-Z]:[\\/]/.test(p.u);
+  $("b_wrapArch").classList.toggle("oculto", !rel);
+  $("b_archivo").checked = false;
+  $("b_archivoTxt").textContent = "Borrar también su archivo del espacio";
+  $("bAceptar").textContent = "Eliminar definitivo";
   abrir("fondoBorra");
 }
 async function confirmarBorrar(){
-  if(borrando === null) return;
-  const o = DATOS[borrando];
-  if(!token()){ cerrar("fondoBorra"); abrir("fondoConn"); toast("Conecta tu cuenta de GitHub primero", true); return; }
-  const btn = $("bAceptar"); btn.disabled = true; btn.textContent = "Eliminando…";
+  if(!borrando) return;
+  const modo = borrando.modo, i = borrando.i;
+  if(!token()){ cerrar("fondoBorra"); abrir("fondoConn");
+               toast("Conecta tu cuenta de GitHub primero", true); return; }
+  const btn = $("bAceptar"); btn.disabled = true;
+  btn.textContent = modo==="papelera" ? "Guardando…" : "Eliminando…";
   try{
-    if(!$("b_wrapArch").classList.contains("oculto") && $("b_archivo").checked && o.u && !esUrl(o.u)){
-      try{ await borrarArchivo(o.u); }catch(e){ toast("El archivo no se pudo borrar: "+e.message, true); }
+    const conArchivo = !$("b_wrapArch").classList.contains("oculto") && $("b_archivo").checked;
+    if(modo === "papelera"){
+      const o = DATOS[i];
+      if(!o) throw new Error("Ese elemento ya no existe");
+      const entrada = {f:o.f||"", c:o.c||"Nota", t:o.t||"", u:o.u||"", m:o.m||"", e:o.e||"",
+                       fb:new Date().toISOString().slice(0,16)};
+      const nuevaPap = PAPELERA.concat([entrada]);
+      /* 1) primero guardamos el respaldo en la papelera */
+      await guardarPapelera(nuevaPap, "A papelera: "+o.t);
+      /* 2) después lo quitamos del catálogo */
+      const nuevos = DATOS.slice(); nuevos.splice(i,1);
+      DATOS = (await guardarCSV(nuevos, "A papelera: "+o.t)).map(aObj);
+      if(conArchivo && o.u && !esUrl(o.u)){
+        try{ await borrarArchivo(o.u); }catch(e){ toast("El archivo no se pudo quitar: "+e.message, true); }
+      }
+      PAPELERA = nuevaPap;
+      renderTodo(); pintarPapeleraBoton();
+      toast("En la papelera ✓  puedes restaurarlo");
+    } else {
+      const p = PAPELERA[i];
+      if(!p) throw new Error("Ese elemento ya no está en la papelera");
+      const nuevaPap = PAPELERA.filter((_,j)=>j!==i);
+      await guardarPapelera(nuevaPap, "Elimina de papelera: "+p.t);
+      if(conArchivo && p.u && !esUrl(p.u)){
+        try{ await borrarArchivo(p.u); }catch(e){ toast("El archivo no se pudo borrar: "+e.message, true); }
+      }
+      PAPELERA = nuevaPap;
+      renderPapelera(); pintarPapeleraBoton();
+      toast("Eliminado definitivamente ✓");
     }
-    const nuevo = DATOS.slice(); nuevo.splice(borrando,1);
-    await guardarCSV(nuevo, "Elimina: "+o.t);
-    const tras = await bajarCSV();
-    DATOS = tras? tras.map(aObj) : nuevo;
-    cerrar("fondoBorra"); renderTodo();
-    toast("Eliminado de la nube ✓");
-  }catch(e){ toast("No se pudo eliminar: "+e.message, true); }
-  borrando = null; btn.disabled = false; btn.textContent = "Eliminar";
+    cerrar("fondoBorra");
+  }catch(e){ toast("No se pudo completar: "+e.message, true); }
+  borrando = null; btn.disabled = false;
+  btn.textContent = modo==="papelera" ? "Mover a papelera" : "Eliminar definitivo";
 }
 
 /* =========================================================== SUBIDA */
@@ -860,6 +973,255 @@ async function guardarToken(){
   }catch(e){ toast("El token no sirve: "+e.message, true); }
 }
 
+/* ========================================== PAPELERA E HISTORIAL */
+let PAPELERA = [];          // [{f,c,t,u,m,e,fb}]
+let HIST = null, histError = "";
+let _pregOk = null;
+
+function pintarPapeleraBoton(){
+  const n = PAPELERA.length;
+  const b = $("btnPapelera");
+  if(b) b.textContent = n ? `🗑 Papelera (${n})` : "🗑 Papelera";
+  const m = $("mPapelera");
+  if(m) m.innerHTML = `<span class="ico">🗑</span>${n?`Papelera · ${n}`:"Papelera"}`;
+  const c = $("papCont"); if(c) c.textContent = n ? `(${n})` : "";
+}
+
+async function bajarPapelera(){
+  if(location.protocol!=="http:" && location.protocol!=="https:") return PAPELERA;
+  try{
+    const r = await fetch("papelera.json", {cache:"no-store"});
+    if(!r.ok) return PAPELERA;
+    const j = await r.json();
+    return Array.isArray(j) ? j : PAPELERA;
+  }catch(e){ return PAPELERA; }
+}
+/* lectura "fresca": API de GitHub primero (al instante), si no, la web estática */
+async function leerRegistro(){
+  const info = repoInfo();
+  if(info){
+    try{
+      const d = await gh("GET","/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv?ref=main");
+      return parseCSV(deBase64(d.content));
+    }catch(e){}
+  }
+  return bajarCSV();
+}
+async function leerPapelera(){
+  const info = repoInfo();
+  if(info){
+    try{
+      const d = await gh("GET","/repos/"+info.owner+"/"+info.repo+"/contents/papelera.json?ref=main");
+      const j = JSON.parse(deBase64(d.content));
+      return Array.isArray(j) ? j : [];
+    }catch(e){}
+  }
+  return bajarPapelera();
+}
+async function guardarPapelera(nuevo, mensaje){
+  const info = repoInfo();
+  if(!info) throw new Error("No se detectó el repositorio");
+  const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/papelera.json";
+  let actual = null;
+  try{ actual = await gh("GET", ruta+"?ref=main"); }catch(e){}
+  await gh("PUT", ruta, {message:mensaje, content:aBase64(JSON.stringify(nuevo,null,1)),
+                         branch:"main", sha: actual? actual.sha : undefined});
+}
+async function refrescar(){
+  const r = await leerRegistro(); if(r) DATOS = r.map(aObj);
+  PAPELERA = await leerPapelera();
+  renderTodo();
+}
+
+function fmtCorto(iso){
+  const d = new Date(iso||"");
+  if(isNaN(d.getTime())) return {fecha:"—", hora:""};
+  const dd = String(d.getDate()).padStart(2,"0");
+  return {fecha: dd+" "+MESES[d.getMonth()].slice(0,3),
+          hora: String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
+}
+const primerRenglon = h => String((h&&h.commit&&h.commit.message)||"").split("\n")[0];
+
+function renderPapelera(){
+  const c = $("papCuerpo");
+  $("papVaciar").classList.toggle("oculto", !PAPELERA.length);
+  if(!PAPELERA.length){
+    c.innerHTML = `<div class="vacio" style="padding:28px 8px">La papelera está vacía.<br><br>
+      <span style="font-size:13.5px">Cuando quites un elemento con 🗑 aparecerá aquí
+      y podrás devolverlo cuando quieras.</span></div>`;
+    return;
+  }
+  c.innerHTML = `<ul class="listaP">` + PAPELERA.map((p,i)=>{
+    const F = fmtFecha(p.f), B = fmtCorto(p.fb);
+    return `<li class="elemP">
+      <div class="tit2"><span class="badge b-${esc(p.c||"Nota")}">${esc(p.c||"Nota")}</span>${esc(p.t)}</div>
+      <div class="sub2">Guardado: ${F.key?mesLargo(F.key):"sin fecha"} · Quitado: ${B.fecha} ${B.hora}</div>
+      ${p.m? `<div class="sub2">Motivo: ${esc(p.m)}</div>`:""}
+      <div class="botones">
+        <button class="mod" onclick="restaurarPapelera(${i})">↩ Restaurar</button>
+        <button class="bor" onclick="pedirDefinitivo(${i})">🗑 Eliminar definitivo</button>
+      </div></li>`;
+  }).join("") + `</ul>`;
+}
+
+function renderHistorial(){
+  const c = $("papCuerpo");
+  $("papVaciar").classList.add("oculto");
+  if(histError){ c.innerHTML = `<div class="aviso-b">${esc(histError)}</div>`; return; }
+  if(HIST === null){ c.innerHTML = `<div class="vacio" style="padding:28px 8px">Cargando historial…</div>`; return; }
+  if(!HIST.length){ c.innerHTML = `<div class="vacio" style="padding:28px 8px">Sin historial todavía.</div>`; return; }
+  c.innerHTML = `<div class="ayuda" style="margin-bottom:6px">Cada guardado quedó registrado aquí.
+      Pulsa <b>Ver</b> para saber cómo estaba el catálogo ese día.</div>` +
+    HIST.map((h,i)=>{
+      const F = fmtCorto(h.commit && h.commit.author && h.commit.author.date);
+      const autor = (h.author && h.author.login) || (h.commit && h.commit.author && h.commit.author.name) || "";
+      return `<div class="histItem">
+        <div class="histFecha"><b>${F.fecha}</b>${F.hora}</div>
+        <div class="histCue">
+          <div class="tit">${esc(primerRenglon(h))}</div>
+          <div style="color:var(--muted);font-size:12.5px">${esc(autor)}</div>
+          <div class="det oculto" id="det-${i}"></div>
+        </div>
+        <div class="acciones restaurar">
+          <button onclick="verVersion(${i})">👁 Ver</button>
+          <button class="mod" onclick="restaurarVersion(${i})">↩ Restaurar</button>
+        </div></div>`;
+    }).join("");
+}
+
+async function verVersion(i){
+  const det = $("det-"+i);
+  if(!det) return;
+  if(!det.classList.contains("oculto")){ det.classList.add("oculto"); return; }
+  det.classList.remove("oculto");
+  det.textContent = "Leyendo esa versión…";
+  const info = repoInfo();
+  if(!info){ det.textContent = "Solo funciona en la web publicada."; return; }
+  try{
+    const d = await gh("GET","/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv?ref="+HIST[i].sha);
+    const filas = parseCSV(deBase64(d.content));
+    det.innerHTML = `<b>${filas.length} elementos</b> ese día:<br>` +
+      (filas.length ? filas.slice(0,6).map(f=>"· "+esc(f.Titulo||"(sin título)")).join("<br>")
+                    : "(catálogo vacío)") +
+      (filas.length>6 ? `<br>…y ${filas.length-6} más` : "");
+  }catch(e){ det.innerHTML = "No se pudo leer: "+esc(e.message); }
+}
+
+async function restaurarVersion(i){
+  const h = HIST[i];
+  const F = fmtCorto(h.commit && h.commit.author && h.commit.author.date);
+  if(!token()){ cerrar("fondoPap"); abrir("fondoConn");
+               toast("Conecta tu cuenta de GitHub para restaurar", true); return; }
+  const r = await preguntar("Restaurar versión anterior",
+    `El catálogo volverá a como estaba el <b>${F.fecha}</b> — «${esc(primerRenglon(h))}».<br><br>` +
+    `<b>Lo guardado después dejará de verse</b> en la lista (no se pierde: sigue en el historial).`,
+    "Restaurar");
+  if(!r.ok) return;
+  const info = repoInfo();
+  try{
+    const viejo  = await gh("GET","/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv?ref="+h.sha);
+    const actual = await gh("GET","/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv?ref=main");
+    await gh("PUT","/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv",
+      {message:"Restaura catálogo del "+F.fecha, content:viejo.content, branch:"main", sha:actual.sha});
+    DATOS = parseCSV(deBase64(viejo.content)).map(aObj);
+    renderTodo();
+    toast("Catálogo restaurado ✓");
+  }catch(e){ toast("No se pudo restaurar: "+e.message, true); }
+}
+
+async function cargarHistorial(){
+  const info = repoInfo();
+  if(!info){ HIST = []; histError = "Solo funciona en la web publicada."; return; }
+  try{
+    HIST = await gh("GET","/repos/"+info.owner+"/"+info.repo+"/commits?path=registro.csv&per_page=20");
+    histError = "";
+  }catch(e){ HIST = []; histError = "No se pudo cargar el historial: "+e.message; }
+}
+
+async function restaurarPapelera(i){
+  const p = PAPELERA[i];
+  if(!p) return;
+  if(!token()){ cerrar("fondoPap"); abrir("fondoConn");
+               toast("Conecta tu cuenta de GitHub para restaurar", true); return; }
+  $("papCuerpo").style.pointerEvents = "none";
+  try{
+    const ya = DATOS.some(x => (x.f||"")===(p.f||"") && (x.t||"")===(p.t||"") && (x.u||"")===(p.u||""));
+    if(!ya){
+      const tras = await guardarCSV(DATOS.concat([{f:p.f||"",c:p.c||"Nota",t:p.t||"",u:p.u||"",m:p.m||"",e:p.e||""}]),
+                                    "Restaura: "+p.t);
+      DATOS = tras.map(aObj);
+    }
+    const nuevaPap = PAPELERA.filter((_,j)=>j!==i);
+    await guardarPapelera(nuevaPap, "Saca de papelera: "+p.t);
+    PAPELERA = nuevaPap;
+    renderTodo(); renderPapelera(); pintarPapeleraBoton();
+    toast("Restaurado ✓ ya está en tu lista");
+  }catch(e){ toast("No se pudo restaurar: "+e.message, true); }
+  $("papCuerpo").style.pointerEvents = "";
+}
+
+async function vaciarPapelera(){
+  if(!PAPELERA.length) return;
+  if(!token()){ cerrar("fondoPap"); abrir("fondoConn"); toast("Conecta tu cuenta de GitHub", true); return; }
+  const n = PAPELERA.length;
+  const r = await preguntar("Vaciar papelera",
+    `Se eliminarán <b>${n} elementos</b> de la papelera.`, "Vaciar",
+    {label:"Borrar también sus archivos del espacio", valor:false});
+  if(!r.ok) return;
+  const btn = $("papVaciar"); btn.disabled = true;
+  try{
+    if(r.valor){
+      for(const p of PAPELERA){
+        if(p.u && !esUrl(p.u)){ try{ await borrarArchivo(p.u); }catch(e){} }
+      }
+    }
+    await guardarPapelera([], "Vacía la papelera ("+n+" elementos)");
+    PAPELERA = [];
+    renderPapelera(); pintarPapeleraBoton();
+    toast("Papelera vacía ✓");
+  }catch(e){ toast("No se pudo vaciar: "+e.message, true); }
+  btn.disabled = false;
+}
+
+function cambiarPestana(p){
+  document.querySelectorAll("#papTabs button").forEach(b => b.classList.toggle("on", b.dataset.p===p));
+  $("papVaciar").classList.toggle("oculto", p!=="pap" || !PAPELERA.length);
+  if(p === "pap") renderPapelera();
+  else{
+    renderHistorial();
+    if(HIST === null) cargarHistorial().then(renderHistorial);
+  }
+}
+async function abrirPapelera(){
+  $("papCuerpo").innerHTML = `<div class="vacio" style="padding:28px 8px">Cargando…</div>`;
+  abrir("fondoPap");
+  PAPELERA = await leerPapelera();
+  pintarPapeleraBoton();
+  cambiarPestana("pap");
+}
+
+/* ------------------------------------- confirmación genérica */
+function preguntar(titulo, texto, etiqueta, casilla){
+  return new Promise(res=>{
+    $("okTitulo").textContent = titulo;
+    $("okTexto").innerHTML = texto;
+    $("okSi").textContent = etiqueta || "Aceptar";
+    const wrap = $("okWrapCasilla");
+    if(casilla){ wrap.classList.remove("oculto"); $("okCasilla").checked = !!casilla.valor;
+                 $("okCasillaTxt").textContent = casilla.label; }
+    else wrap.classList.add("oculto");
+    _pregOk = res;
+    abrir("fondoOk");
+  });
+}
+function terminarPregunta(ok){
+  cerrar("fondoOk");
+  const f = _pregOk; _pregOk = null;
+  if(!f) return;
+  const conCasilla = !$("okWrapCasilla").classList.contains("oculto");
+  f({ok, valor: ok && conCasilla ? $("okCasilla").checked : false});
+}
+
 /* ========================================================== EVENTOS */
 $("q").oninput = () => render();
 $("orden").onchange = () => render();
@@ -883,6 +1245,11 @@ $("btnAdd").onclick = agregar;
 $("mAdd").onclick = agregar;
 $("btnConn").onclick = abrirConexion;
 $("mConn").onclick = abrirConexion;
+$("btnPapelera").onclick = abrirPapelera;
+$("mPapelera").onclick = abrirPapelera;
+$("papCerrar").onclick = () => cerrar("fondoPap");
+$("papVaciar").onclick = vaciarPapelera;
+document.querySelectorAll("#papTabs button").forEach(b => b.onclick = () => cambiarPestana(b.dataset.p));
 $("mVista").onclick = () => {
   const opciones = ["lista","compacta","linea"];
   vista = opciones[(opciones.indexOf(vista)+1) % opciones.length];
@@ -908,9 +1275,16 @@ $("btnSubir").onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefa
 $("fileSubir").onchange = e => { subirArchivo(e.target.files[0]); e.target.value=""; };
 $("f_cat").onchange = pintarRuta;
 document.querySelectorAll(".fondo").forEach(f => f.onclick = e => { if(e.target===f) f.classList.remove("on"); });
+$("okSi").onclick = () => terminarPregunta(true);
+$("okNo").onclick = () => terminarPregunta(false);
+$("fondoOk").onclick = e => { if(e.target===$("fondoOk")) terminarPregunta(false); };
 
 document.addEventListener("keydown", e => {
-  if(e.key === "Escape"){ document.querySelectorAll(".fondo.on").forEach(f=>f.classList.remove("on")); return; }
+  if(e.key === "Escape"){
+    if(_pregOk) terminarPregunta(false);
+    else document.querySelectorAll(".fondo.on").forEach(f=>f.classList.remove("on"));
+    return;
+  }
   const tag = (e.target.tagName||"").toLowerCase();
   if(tag==="input"||tag==="textarea"||tag==="select") return;
   if(e.key === "/"){ e.preventDefault(); $("q").focus(); }
@@ -929,10 +1303,11 @@ window.addEventListener("hashchange", resaltarHash);
   }
   pintarOnline();
   const remoto = await bajarCSV();
-  if(remoto && remoto.length) DATOS = remoto.map(aObj);
+  if(remoto) DATOS = remoto.map(aObj);
+  PAPELERA = await bajarPapelera();
   const ult = DATOS.map(r=>r.f).filter(Boolean).sort().pop();
-  $("sub").textContent = `${DATOS.length} elementos · actualizado ${ult||"—"} · agregar, modificar y eliminar desde aquí`;
-  $("foot").textContent = "Espacio personal · los cambios se guardan en registro.csv de GitHub · atajos: / buscar · N nueva · Esc cerrar";
+  $("sub").textContent = `${DATOS.length} elementos · actualizado ${ult||"—"} · agregar, modificar y restaurar desde aquí`;
+  $("foot").textContent = "Espacio personal · cambios en registro.csv de GitHub · papelera e historial desde la barra · atajos: / buscar · N nueva · Esc cerrar";
   renderTodo();
 })();
 </script>

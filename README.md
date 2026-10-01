@@ -10,17 +10,29 @@ Haz doble clic en **`indice.html`** (o en `Abrir-MiEspacio.bat`).
 Ahí ves todo en una sola pantalla, con:
 
 - Búsqueda instantánea por título, motivo, evento o URL.
-- Filtros por categoría (Personal, URL-Trabajo, Manual, Imagen-Sistema, Nota).
-- Orden por fecha (reciente/antiguo), título o categoría.
-- Agrupación automática por mes.
+- Filtros por categoría (Personal, URL-Trabajo, Manual, Imagen-Sistema, Nota)
+  y filtro por rango de fechas.
+- Orden por fecha (reciente/antiguo), título, categoría o **evento**.
+- 3 vistas: **lista**, **compacta** y **línea de tiempo**.
+- Agrupación automática por mes y gráficos por categoría y por mes.
 - El **motivo** y el **evento** de cada guardado visibles en la tarjeta.
+- Modo **claro/oscuro**, compartir y visor de imágenes.
+- **🗑 Papelera**: lo que borras se recupera; **🕘 Historial**: devuelve el
+  catálogo a una versión anterior.
+- Diseño **responsivo**: en PC con barra lateral arriba, en el celular con
+  barra de botones abajo.
+
+La versión publicada (celular, cualquier PC) es
+<https://ovando130814-beep.github.io/mi-espacio/>.
 
 ## Estructura
 
 ```
 MiEspacio\
 ├── indice.html              ← tu visor (se regenera solo)
+├── index.html               ← el mismo visor para la web publicada
 ├── registro.csv             ← el catálogo: FECHA, CATEGORÍA, TÍTULO, UBICACIÓN, URL, MOTIVO, EVENTO
+├── papelera.json            ← lo que borraste (se recupera desde la web o Restaurar.ps1)
 ├── 01-Archivos-Personales\  ← documentos personales
 ├── 02-URLs-Trabajo\         ← aquí solo se guarda la URL en el catálogo
 ├── 03-Manuales\             ← PDFs de manuales
@@ -28,7 +40,11 @@ MiEspacio\
 ├── 05-Notas-y-Eventos\      ← notas y evidencias de por qué guardas algo
 └── _scripts\
     ├── Agregar.ps1          ← añade un elemento + regenera el visor
+    ├── Eliminar.ps1         ← lo quita y lo deja en la papelera
+    ├── Restaurar.ps1        ← devuelve algo de la papelera
+    ├── Papelera.ps1         ← ayudante de la papelera (no ejecutar)
     ├── Generar-Indice.ps1   ← solo regenera el visor
+    ├── Subir-A-La-Nube.ps1  ← sube todo a GitHub
     └── plantilla.html       ← diseño del visor (no editar)
 ```
 

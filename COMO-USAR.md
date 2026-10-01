@@ -1,7 +1,8 @@
-# Borrar algo
+# Borrar algo (y recuperarlo después)
 
-Puedes borrar **solo el registro** (el elemento desaparece del visor) o
-**el registro + el archivo físico**.
+Al borrar, el elemento **no desaparece para siempre**: pasa a la *papelera*
+(`papelera.json`) y puedes devolverlo desde la web o con `Restaurar.ps1`.
+Para borrar sin papelera usa `-Definitivo`.
 
 ```powershell
 cd C:\Users\Administrador\MiEspacio\_scripts
@@ -14,14 +15,26 @@ cd C:\Users\Administrador\MiEspacio\_scripts
 # 2) Borra por número (el número es el orden del catálogo)
 .\Eliminar.ps1 -Id 3
 
-# 3) Borra el registro Y el archivo de la carpeta
+# 3) Borra el registro Y el archivo de la carpeta (el registro va a la papelera)
 .\Eliminar.ps1 -Id 3 -BorrarArchivo
 
 # 4) Borra todas las plantillas [Ejemplo]
 .\Eliminar.ps1 -TodoLosEjemplos -Silencioso
+
+# 5) Borrar sin papelera (no se puede recuperar)
+.\Eliminar.ps1 -Id 3 -Definitivo
 ```
 
-El visor se regenera solo después de cada borrado.
+### Recuperar lo borrado desde la PC
+
+```powershell
+.\Restaurar.ps1          # muestra la papelera y elige qué devolver
+.\Restaurar.ps1 -Id 2    # restaura el número 2
+.\Restaurar.ps1 -Todo    # restaura todo
+.\Restaurar.ps1 -Lista   # solo mirar, sin restaurar
+```
+
+El visor se regenera solo después de cada borrado y de cada restauración.
 
 ---
 
@@ -49,10 +62,28 @@ pública lo muestra). Si usas otro equipo, lo conectas ahí también. Para quita
 |---|---|
 | **+ Agregar** | Formulario con fecha, categoría, motivo y evento → sube a GitHub |
 | **Modificar** | Abre el elemento con todos sus datos → guarda los cambios |
-| **Eliminar** | Pide confirmación y, si quieres, borra también el archivo físico |
+| **Eliminar** | **Lo mueve a la papelera** (puedes restaurarlo); opcionalmente quita su archivo |
+| **🗑 Papelera** | Abre la papelera y el historial de cambios |
 
-Después de cada cambio la web vuelve a leer `registro.csv` y muestra el resultado.
-GitHub tarda ~1 minuto en republicar `index.html`.
+Después de cada cambio la web vuelve a leer `registro.csv` (directo de GitHub) y
+muestra el resultado al instante.
+
+---
+
+# Papelera e historial (deshacer)
+
+Botón **🗑 Papelera** (arriba en PC, abajo en el celular). Tiene dos pestañas:
+
+| Pestaña | Qué hace |
+|---|---|
+| **🗑 Papelera** | Lista lo que quitaste. **↩ Restaurar** lo devuelve a tu lista · **Eliminar definitivo** lo borra para siempre (con casilla para borrar también su archivo) · **Vaciar papelera** las borra todas |
+| **🕘 Historial** | Los últimos cambios de `registro.csv`. **👁 Ver** te dice cuántos elementos había ese día · **↩ Restaurar** devuelve el catálogo completo a esa fecha |
+
+> Al restaurar una versión, lo guardado **después** deja de verse en la lista
+> (no se pierde: sigue en el historial de GitHub).
+
+La papelera es un archivo más del repositorio (`papelera.json`), así que
+**también se sincroniza**: borras en la PC y lo ves en la papelera del celular.
 
 ---
 
@@ -131,6 +162,10 @@ en privado con acceso por usuario y contraseña.
 
 ```
 Agregar.ps1      →  guardo algo con su fecha, motivo y evento
-Eliminar.ps1     →  borro lo que ya no necesito
+Eliminar.ps1     →  lo quito (queda en la papelera por si acaso)
+Restaurar.ps1    →  recupero algo de la papelera
 Subir-A-La-Nube  →  lo reflejo en la nube
 ```
+
+Desde la web no hace falta nada de esto: **+ Agregar**, **Modificar**,
+**Eliminar** y **🗑 Papelera** guardan directo en GitHub.

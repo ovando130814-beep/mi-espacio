@@ -21,6 +21,9 @@ Ahí ves todo en una sola pantalla, con:
   catálogo a una versión anterior.
 - **🩺 Revisar**: detecta enlaces rotos, archivos que ya no existen y datos
   malos; guardar y subir quedan **bloqueados** si el catálogo tiene errores.
+- **📷 Subir archivos desde la web**: botón para **tomar foto** con la cámara
+  del celular, elegir **varios archivos a la vez** (con barra de progreso y un
+  registro por archivo) y **reemplazar el repetido** en lugar de duplicarlo.
 - Diseño **responsivo**: en PC con barra lateral arriba, en el celular con
   barra de botones abajo.
 

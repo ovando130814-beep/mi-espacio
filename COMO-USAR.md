@@ -68,6 +68,29 @@ pública lo muestra). Si usas otro equipo, lo conectas ahí también. Para quita
 Después de cada cambio la web vuelve a leer `registro.csv` (directo de GitHub) y
 muestra el resultado al instante.
 
+### Subir fotos y archivos desde la web (celular o PC)
+
+Dentro del formulario (**+ Agregar** o **Modificar**) hay dos botones:
+
+| Botón | Qué hace |
+|---|---|
+| **📎 Adjuntar archivo** | Abre el selector de archivos; puedes elegir **varios a la vez** |
+| **📷 Tomar foto** | En el celular **abre la cámara**; en la PC abre el selector de imágenes |
+
+Cosas que conviene saber:
+
+- **Sube a la nube** (a la carpeta de la categoría elegida) y deja la ruta en el
+  registro; el archivo no depende de tu equipo.
+- Si eliges **varios archivos**, te pregunta: *Subirlos todos* crea **un
+  registro por archivo** (título = nombre del archivo, con el mismo motivo,
+  evento y fecha del formulario) y muestra **barra de progreso**; *Cancelar*
+  sube solo el primero.
+- Si el archivo **ya existe** en esa carpeta, pregunta si quieres
+  **Reemplazarlo** (no queda duplicado) o subirlo como copia nueva con la fecha
+  por delante.
+- Límites: **10 archivos** por vez y **20 MB** por archivo. Si uno falla, la
+  subida **sigue con los demás** y te avisa al final.
+
 ---
 
 # Papelera e historial (deshacer)

@@ -41,7 +41,7 @@
   .marca{display:flex;align-items:center;justify-content:space-between;gap:10px}
   h1{margin:0;font-size:17px;letter-spacing:.2px}
   h1 span{color:var(--accent)}
-  .sub{color:var(--muted);font-size:11.5px;margin-top:1px}
+  .sub{color:var(--muted);font-size:12px;margin-top:1px}
   .marca-btns{display:flex;gap:7px}
   .marca-btns button{width:38px;height:38px;padding:0;font-size:16px;border-radius:10px}
 
@@ -90,12 +90,12 @@
   main{padding:14px 14px 96px;max-width:1150px;margin:0 auto}
   .stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;
-        padding:9px 13px;font-size:11.5px;color:var(--muted);flex:1 1 130px}
+        padding:9px 13px;font-size:12px;color:var(--muted);flex:1 1 130px}
   .stat b{display:block;font-size:21px;color:var(--txt);line-height:1.15}
   .cont{font-size:12.5px;color:var(--muted);margin-bottom:10px}
   .cont b{color:var(--txt)}
 
-  .mes{font-size:11.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);
+  .mes{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);
        margin:20px 0 9px;border-bottom:1px solid var(--line);padding-bottom:6px}
   .tarj{background:var(--panel);border:1px solid var(--line);border-radius:14px;
         padding:13px 14px;margin-bottom:11px;display:flex;gap:13px;align-items:flex-start}
@@ -108,7 +108,7 @@
   .tit{font-weight:650;font-size:15.5px;word-break:break-word}
   .tit a{color:var(--txt);text-decoration:none}
   .tit a:hover{color:var(--accent);text-decoration:underline}
-  .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;
+  .badge{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.6px;
     text-transform:uppercase;border-radius:6px;padding:3px 7px;margin-right:7px;vertical-align:1px}
   .b-Personal{background:rgba(77,163,255,.18);color:#0b5fbf}
   .b-URL-Trabajo{background:rgba(240,167,66,.18);color:#96590f}
@@ -136,7 +136,7 @@
   .acciones .mod:hover{border-color:var(--ok);color:var(--ok)}
   .acciones .bor:hover{border-color:var(--mal);color:var(--mal)}
   .vacio{text-align:center;color:var(--muted);padding:46px 12px;font-size:15px}
-  footer{color:var(--dim);font-size:11.5px;text-align:center;padding:20px 6px}
+  footer{color:var(--dim);font-size:12px;text-align:center;padding:20px 6px}
 
   /* -------------------------------------------------------- línea de tiempo */
   .linea{position:relative;padding-left:28px}
@@ -157,7 +157,7 @@
     background:var(--panel);border-top:1px solid var(--line);
     padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:6px}
   .barra button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:2px;font-size:11px;padding:7px 4px;border:none;background:transparent;color:var(--muted);min-height:52px}
+    gap:2px;font-size:12px;padding:7px 4px;border:none;background:transparent;color:var(--muted);min-height:52px}
   .barra button .ico{font-size:19px;line-height:1}
   .barra button.pri{background:var(--accent);color:#06121f;border-radius:12px;font-weight:700}
   body.claro .barra button.pri{color:#fff}
@@ -359,10 +359,18 @@
 
     <div class="campo">
       <label for="fileSubir">Archivo</label>
-      <div class="subida" id="btnSubir" role="button" tabindex="0">📎 Adjuntar archivo — se sube a la nube desde el celular o la PC</div>
-      <input type="file" id="fileSubir" class="oculto">
+      <div class="subida" id="btnSubir" role="button" tabindex="0">📎 Adjuntar archivo — puedes elegir varios a la vez</div>
+      <div class="subida" id="btnCamara" role="button" tabindex="0" style="margin-top:8px">📷 Tomar foto — desde el celular abre la cámara</div>
+      <input type="file" id="fileSubir" class="oculto" multiple>
+      <input type="file" id="fileCamara" class="oculto" accept="image/*" capture="environment">
       <input id="f_ubi" class="oculto" placeholder="03-Manuales/manual.pdf">
       <div class="aviso-b oculto" id="rutaActual"></div>
+      <div class="oculto" id="subProgreso">
+        <div class="revProgreso" role="status" aria-live="polite">
+          <span id="subTxt">Subiendo…</span>
+          <div class="revBarra"><i id="subBar"></i></div>
+        </div>
+      </div>
     </div>
 
     <div id="formSinToken" class="aviso-b oculto">
@@ -1073,6 +1081,7 @@ function cerrar(id){ $(id).classList.remove("on"); }
 function editar(i){
   editando = i;
   const o = DATOS[i];
+  ocultarProgreso();
   $("formTitulo").textContent = "Modificar elemento";
   $("f_titulo").value=o.t||""; $("f_fecha").value=o.f||"";
   $("f_cat").value = CATS.includes(o.c)?o.c:"Nota";
@@ -1085,6 +1094,7 @@ function editar(i){
 }
 function agregar(){
   editando = null;
+  ocultarProgreso();
   $("formTitulo").textContent = "Agregar elemento";
   ["f_titulo","f_motivo","f_evento","f_url","f_ubi"].forEach(id=>$(id).value="");
   $("f_fecha").value = new Date().toISOString().slice(0,10);
@@ -1212,33 +1222,157 @@ function leerBase64(archivo){
     fr.readAsDataURL(archivo);
   });
 }
-async function subirArchivo(archivo){
-  if(!archivo) return;
+const limpiarNombre = n => (n || "archivo").replace(/[^\w.\- ()áéíóúñÁÉÍÓÚÑ]/g, "_");
+const tituloDeArchivo = n => (n || "").replace(/\.[^.]+$/, "").trim() || (n || "Archivo");
+
+function verProgreso(txt, p){
+  $("subProgreso").classList.remove("oculto");
+  $("subTxt").textContent = txt;
+  $("subBar").style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + "%";
+}
+const ocultarProgreso = () => $("subProgreso").classList.add("oculto");
+function bloquearSubida(on){
+  ["fGuardar","fCancelar"].forEach(id => { const b = $(id); if(b) b.disabled = on; });
+  ["btnSubir","btnCamara"].forEach(id => { const b = $(id); if(b) b.style.pointerEvents = on ? "none" : ""; });
+}
+async function listarCarpeta(info, carpeta){
+  try{
+    const d = await gh("GET", "/repos/"+info.owner+"/"+info.repo+"/contents/"+encodeURI(carpeta)+"?ref=main");
+    if(Array.isArray(d)) return d.filter(x => x && x.name).map(x => ({name:x.name, sha:x.sha, path:x.path}));
+    if(d && d.name) return [{name:d.name, sha:d.sha, path:d.path}];
+  }catch(e){ /* carpeta vacía */ }
+  return [];
+}
+async function shaDeArchivo(info, ruta){
+  try{
+    const d = await gh("GET", "/repos/"+info.owner+"/"+info.repo+"/contents/"+encodeURI(ruta)+"?ref=main");
+    return (d && d.sha) ? d.sha : null;
+  }catch(e){ return null; }   /* no existe todavía */
+}
+async function subirUno(info, ruta, archivo, mensaje, shaConocido){
+  const b64 = await leerBase64(archivo);
+  const cuerpo = {message: mensaje, content: b64, branch: "main"};
+  const sha = shaConocido || await shaDeArchivo(info, ruta);
+  if(sha) cuerpo.sha = sha;   /* la API exige el sha si el archivo ya existe */
+  await gh("PUT", "/repos/"+info.owner+"/"+info.repo+"/contents/"+encodeURI(ruta), cuerpo);
+}
+
+async function subirArchivos(archivos){
+  if(!archivos || !archivos.length) return;
   if(!token()){ abrir("fondoConn"); toast("Conecta tu cuenta de GitHub para subir archivos", true); return; }
-  if(archivo.size > 20*1024*1024){ toast("Máximo 20 MB por archivo", true); return; }
   const info = repoInfo();
   if(!info){ toast("Solo funciona en la web publicada", true); return; }
 
-  const cat = $("f_cat").value;
-  const carpeta = CARPETAS[cat] || "01-Archivos-Personales";
-  const limpio = archivo.name.replace(/[^\w.\- ()áéíóúñÁÉÍÓÚÑ]/g,"_");
-  const sello = new Date().toISOString().slice(0,10).replace(/-/g,"");
-  const destino = carpeta + "/" + sello + "_" + limpio;
+  let lista = Array.from(archivos);
+  if(lista.length > 10){ toast("Máximo 10 archivos por vez (elegiste " + lista.length + ")", true); return; }
+  const pesado = lista.find(a => a.size > 20*1024*1024);
+  if(pesado){ toast('"' + pesado.name + '" pasa de 20 MB (máximo por archivo)', true); return; }
 
-  const btn = $("btnSubir");
-  const texto = btn.textContent;
-  btn.textContent = "⏳ Subiendo " + archivo.name + "…"; btn.style.pointerEvents = "none";
-  try{
-    const b64 = await leerBase64(archivo);
-    await gh("PUT", "/repos/"+info.owner+"/"+info.repo+"/contents/"+encodeURI(destino),
-             {message:"Sube "+archivo.name, content:b64, branch:"main"});
-    $("f_ubi").value = destino;
-    if(!$("f_titulo").value.trim()) $("f_titulo").value = archivo.name.replace(/\.[^.]+$/,"");
-    if(!$("f_url").value.trim()){ /* nada */ }
-    pintarRuta();
-    toast("Archivo subido a la nube ✓");
-  }catch(e){ toast("No se pudo subir: "+e.message, true); }
-  btn.textContent = texto; btn.style.pointerEvents = "";
+  /* ¿varios archivos? → ¿un registro por cada uno? */
+  let catalogar = false;
+  if(lista.length > 1){
+    const r = await preguntar("Subir " + lista.length + " archivos",
+      "Has elegido <b>" + lista.length + " archivos</b>.<br><br>" +
+      "▸ <b>Subirlos todos</b>: se suben los " + lista.length +
+      " y se crea <b>un registro por archivo</b> (título = nombre del archivo; " +
+      "se usan la fecha, el motivo y el evento de este formulario).<br><br>" +
+      "▸ <b>Cancelar</b>: se sube solo el primero y queda en este registro.",
+      "Subirlos todos");
+    if(!r.ok) lista = lista.slice(0,1);
+    else catalogar = true;
+  }
+
+  const carpeta = CARPETAS[$("f_cat").value] || "01-Archivos-Personales";
+  const sello = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  verProgreso("Buscando archivos repetidos…", .05);
+  const existentes = await listarCarpeta(info, carpeta);
+
+  /* ¿alguno ya está en la carpeta? */
+  const plan = lista.map(a => {
+    const limpio = limpiarNombre(a.name);
+    const hito = existentes.find(e => e.name === limpio || e.name.endsWith("_" + limpio));
+    return {a, limpio, hito, ruta: hito ? hito.path : carpeta + "/" + sello + "_" + limpio};
+  });
+  const repetidos = plan.filter(p => p.hito);
+  let reemplazar = false;
+  if(repetidos.length){
+    const r2 = await preguntar("Archivo repetido",
+      "Ya está(n) en <b>" + esc(carpeta) + "</b>:<br>" +
+      repetidos.map(p => "<b>" + esc(p.a.name) + "</b>").join("<br>") + "<br><br>" +
+      "▸ <b>Reemplazar</b>: se actualiza el archivo que ya está y <b>no queda duplicado</b>.<br>" +
+      "▸ <b>Cancelar</b>: se sube como copia nueva con la fecha del día por delante.",
+      "Reemplazar");
+    reemplazar = r2.ok;
+    plan.forEach(p => { if(p.hito && !reemplazar) p.ruta = carpeta + "/" + sello + "_" + p.limpio; });
+  }
+
+  /* subir de uno en uno con barra de progreso (si uno falla, sigue con el resto) */
+  bloquearSubida(true);
+  const subidas = [], fallidos = [];
+  for(let i = 0; i < plan.length; i++){
+    const p = plan[i];
+    verProgreso("Subiendo " + (i+1) + " de " + plan.length + ": " + p.a.name, i / plan.length);
+    try{
+      const esReemplazo = !!(reemplazar && p.hito && p.ruta === p.hito.path);
+      await subirUno(info, p.ruta, p.a, (esReemplazo ? "Reemplaza " : "Sube ") + p.a.name,
+                     esReemplazo ? p.hito.sha : null);
+      subidas.push(p);
+    }catch(e){ fallidos.push({nombre: p.a.name, error: e.message}); }
+  }
+  verProgreso("Subido " + subidas.length + " de " + plan.length, subidas.length / plan.length);
+  bloquearSubida(false);
+  const avisoFallo = fallidos.length
+    ? " · " + fallidos.length + (fallidos.length === 1 ? " no se subió" : " no se subieron")
+    : "";
+
+  if(!subidas.length){
+    ocultarProgreso();
+    toast("No se pudo subir" + (fallidos.length > 1 ? " ninguno" : "") + ": " +
+          (fallidos[0] ? fallidos[0].nombre + " → " + fallidos[0].error : "error desconocido"), true);
+    return;
+  }
+
+  if(catalogar){
+    /* un registro por archivo subido */
+    const hoy = new Date().toISOString().slice(0,10);
+    const registros = subidas.map(p => ({
+      f: $("f_fecha").value || hoy,
+      c: $("f_cat").value,
+      t: tituloDeArchivo(p.a.name),
+      u: p.ruta,
+      m: $("f_motivo").value.trim(),
+      e: $("f_evento").value.trim()
+    }));
+    const v = validarDatos(DATOS.concat(registros));
+    if(v.errores.length){
+      ocultarProgreso();
+      mostrarProblemas("Falta corregir algo", "Los archivos ya están en la nube; corrige estos datos y vuelve a intentarlo:",
+        v.errores.map(x => ({t:x, tipo:"mal", ico:"✗"})),
+        v.avisos.map(x => ({t:x, tipo:"av", ico:"⚠"})));
+      return;
+    }
+    try{
+      const tras = await guardarCSV(DATOS.concat(registros),
+        "Agrega " + registros.length + " archivo(s): " + registros.slice(0,3).map(r => r.t).join(", "));
+      DATOS = tras.map(aObj);
+      ocultarProgreso();
+      cerrar("fondoForm");
+      renderTodo();
+      toast(registros.length + " archivo(s) subido(s) y catalogado(s) ✓" + avisoFallo);
+    }catch(e){
+      ocultarProgreso();
+      toast("Los archivos subieron pero no se pudo actualizar el catálogo: " + e.message, true);
+    }
+    return;
+  }
+
+  /* un solo archivo: queda en el formulario para terminar de guardarlo */
+  const p = subidas[0];
+  $("f_ubi").value = p.ruta;
+  if(!$("f_titulo").value.trim()) $("f_titulo").value = tituloDeArchivo(p.a.name);
+  pintarRuta();
+  setTimeout(ocultarProgreso, 1600);
+  toast((reemplazar && repetidos.length ? "Archivo reemplazado ✓" : "Archivo subido a la nube ✓"));
 }
 
 /* ======================================================== CONEXIÓN */
@@ -1564,7 +1698,16 @@ $("bAceptar").onclick = confirmarBorrar;
 $("imgCerrar").onclick = () => cerrar("fondoImg");
 $("btnSubir").onclick = () => $("fileSubir").click();
 $("btnSubir").onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $("fileSubir").click(); } };
-$("fileSubir").onchange = e => { subirArchivo(e.target.files[0]); e.target.value=""; };
+$("btnCamara").onclick = () => $("fileCamara").click();
+$("btnCamara").onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $("fileCamara").click(); } };
+/* se copian los archivos ANTES de vaciar el input (si no, la lista queda vacía) */
+function archivosElegidos(e){
+  const f = Array.from(e.target.files || []);
+  e.target.value = "";
+  subirArchivos(f);
+}
+$("fileSubir").onchange = archivosElegidos;
+$("fileCamara").onchange = archivosElegidos;
 $("f_cat").onchange = pintarRuta;
 document.querySelectorAll(".fondo").forEach(f => f.onclick = e => { if(e.target===f) f.classList.remove("on"); });
 $("okSi").onclick = () => terminarPregunta(true);

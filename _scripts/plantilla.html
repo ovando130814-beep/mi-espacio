@@ -477,7 +477,7 @@ async function guardarCSV(nuevo, mensaje){
   if(!info) throw new Error("No se detectó el repositorio");
   const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv";
   const actual = await gh("GET", ruta+"?ref=main");
-  await gh("PUT", ruta, {message:mensaje, content:aBase64(aCSV(nuevo)), branch:"main",
+  await gh("PUT", ruta, {message:mensaje, content:aBase64(aCSV(nuevo.map(aFila))), branch:"main",
                          sha: actual? actual.sha : undefined});
   const tras = await gh("GET", ruta+"?ref=main");
   return parseCSV(deBase64(tras.content));

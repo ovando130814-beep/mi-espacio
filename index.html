@@ -375,7 +375,7 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
-let DATOS = [{"f":"2026-09-12","c":"Manual","t":"[Ejemplo] Manual de inventario de equipos","u":"https://ejemplo.com/manual-inventario.pdf","m":"Lo necesito para el inventario anual de la sede","e":"Inventario 2026"},{"f":"2026-09-20","c":"URL-Trabajo","t":"[Ejemplo] Portal de planillas en linea","u":"https://ejemplo.com/planillas","m":"Consulta mensual de planillas del personal","e":"Cierre mensual"},{"f":"2026-09-28","c":"Imagen-Sistema","t":"[Ejemplo] Captura de error al sincronizar tabletas","u":"04-Imagenes-Sistemas/123.jpg","m":"Evidencia del fallo para escalar al soporte","e":"Incidente de sincronizacion"},{"f":"2026-09-30","c":"Nota","t":"[Ejemplo] Cambio en el procedimiento de actas","u":"","m":"Para no tener que volver a investigar el proceso cada año","e":"Reunión con coordinación académica"}];
+let DATOS = [{"f":"2026-09-12","c":"Manual","t":"[Ejemplo] Manual de inventario de equipos","u":"https://ejemplo.com/manual-inventario.pdf","m":"Lo necesito para el inventario anual de la sede","e":"Inventario 2026"},{"f":"2026-09-20","c":"URL-Trabajo","t":"[Ejemplo] Portal de planillas en linea","u":"https://ejemplo.com/planillas","m":"Consulta mensual de planillas del personal","e":"Cierre mensual"},{"f":"2026-09-30","c":"Nota","t":"[Ejemplo] Cambio en el procedimiento de actas","u":"","m":"Para no tener que volver a investigar el proceso cada año","e":"Reunión con coordinación académica"}];
 
 const CATS = ["Personal","URL-Trabajo","Manual","Imagen-Sistema","Nota"];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
@@ -477,7 +477,7 @@ async function guardarCSV(nuevo, mensaje){
   if(!info) throw new Error("No se detectó el repositorio");
   const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/registro.csv";
   const actual = await gh("GET", ruta+"?ref=main");
-  await gh("PUT", ruta, {message:mensaje, content:aBase64(aCSV(nuevo)), branch:"main",
+  await gh("PUT", ruta, {message:mensaje, content:aBase64(aCSV(nuevo.map(aFila))), branch:"main",
                          sha: actual? actual.sha : undefined});
   const tras = await gh("GET", ruta+"?ref=main");
   return parseCSV(deBase64(tras.content));

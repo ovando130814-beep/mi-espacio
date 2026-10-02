@@ -198,48 +198,58 @@ actividades) colocado sobre el día de su fecha.
 | **PC** | Arriba, en el desplegable **Vista** → **📅 Calendario** |
 | **Celular** | Barra de abajo → **☰ Vista** (repite hasta llegar a **📅 Calendario**) o el mismo desplegable |
 
-### Qué ves (el calendario manda)
+### Qué ves (el calendario manda, SIN botones)
 
 - Ocupa **casi toda el área de trabajo**: rejilla grande del mes (**lunes
-  primero**), **hoy** marcado y el día elegido resaltado; **‹ ›** cambian de mes
-  y **Hoy** vuelve al día de hoy.
+  primero**), **hoy** marcado y el día elegido resaltado.
+- **La rejilla no muestra ningún botón**: la barra de herramientas, los chips
+  de categoría, los filtros y la navegación **‹ mes › / Hoy** se esconden para
+  que solo veas **el calendario** (queda el título del mes).
+  - Para **cambiar de mes**: haz clic en cualquiera de los **días grises** de
+    la última o primera fila (son días del mes siguiente/anterior); se abre su
+    área y, al pulsar **📅 Calendario**, verás ese mes. Dentro del área también
+    te mueves con **‹ ›** día a día y **Hoy**.
 - Cada **punto** es un elemento guardado ese día; el **color** indica su
   categoría (leyenda debajo de la rejilla). Si un día tiene más de 4, sale **+N**.
 - Las **estadísticas de arriba se activan con el día elegido**: cuántos
   elementos hay ese día, cuántas actividades, cuánto hay en el mes y lo que viene.
-- Debajo, el **día elegido**: sus elementos con sus botones normales
-  (✏️ Modificar, 🗑 Eliminar, 📤 Compartir).
+- Debajo, el **día elegido** (fecha y resumen, sin botones): avisa que ese día
+  se abre con un clic.
 - **🔔 Lo que viene**: los próximos 5 elementos con fecha desde hoy en adelante
   (pulsa uno para saltar a ese día).
 
-### Al hacer clic en un día se abre SU área de trabajo
+### Al hacer clic en un día se abre SU área de trabajo (con todo dentro)
 
 El día que eliges **abre su propia área a pantalla completa** (se cierra la
-rejilla) con todo lo necesario para trabajar sobre esa fecha:
+rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
+**barra entera del sistema, que se mete dentro del área**:
 
 | Botón | Qué hace |
 |---|---|
 | **‹ día anterior** / **día siguiente ›** | Te mueves día a día sin salir del área |
 | **Hoy** | Abre el área del día de hoy |
 | **📅 Calendario** | Vuelve a la rejilla del mes |
-| **＋ Nuevo** | Abre el formulario con la **fecha ya puesta** y la categoría **Actividad** |
+| **🔍 Buscar** (barra del sistema, dentro del área) | Filtra al instante lo de **ese día** (título, motivo, evento, URL) |
+| **Orden** | Ordena los elementos del día (título, fecha, categoría…) |
+| **Vista** | Cambia a Lista / Compacta / Línea / Calendario |
+| **⚙ Filtros** | Rango de fechas y gráficas, **dentro del área** |
+| **➕ Agregar** | Abre el formulario con la **fecha ya puesta** y la categoría **Actividad** |
+| **Conectar** / **🗑 Papelera** / **🩺 Revisar** / **📦 Respaldo** | Las 4 opciones del sistema, activas sobre ese día |
+| **＋ Nuevo** | Igual que Agregar: fecha del día lista |
 | **📎 Adjuntar archivo** | Sube y cataloga con la **fecha de ese día** |
 | **📷 Tomar foto** | La foto queda con la **fecha de ese día** |
-| **🗂 Ver en la lista** | Filtra la lista a ese día: ahí usas orden, búsqueda, edición, compartir… |
-| **🗑 Papelera** | Abre la papelera para restaurar algo borrado |
-| **🔍 Buscar en este día** | Filtra al instante lo de ese día (título, motivo, evento, URL) |
+| **🗂 Ver en la lista** | Filtra la lista a ese día: ahí usas chips, edición, compartir… |
 
-Cada elemento del día se muestra con sus botones normales: **Abrir/Compartir,
-✏️ Modificar y 🗑 Eliminar**, y las **estadísticas de arriba** responden a ese
-mismo día.
+- En el **celular**, los botones grandes de la barra (**Filtros, Agregar,
+  Vista, Papelera, Conectar**) aparecen en la **barra de abajo** mientras el
+  área está abierta.
+- Cada elemento del día se muestra con sus botones normales: **Abrir/Compartir,
+  ✏️ Modificar y 🗑 Eliminar**, y las **estadísticas de arriba** responden a ese
+  mismo día.
 
-Además, el botón **+ Agregar** de arriba (y el **＋** del celular) abre el
-formulario con la fecha del día elegido mientras estés en el calendario.
-
-> El calendario **muestra todo el catálogo** y no usa la búsqueda ni los chips;
-> para trabajar ese día con filtros y orden, usa **🗂 Ver en la lista** y luego
-> **Limpiar filtros**. Los elementos sin fecha no salen (te avisa el contador
-> de arriba).
+> La rejilla no usa búsqueda, orden ni chips; **dentro del área**, el buscador
+> y el orden sí trabajan sobre el día elegido. Los elementos sin fecha no
+> salen (te avisa el contador de arriba).
 
 ### Para programar una actividad
 

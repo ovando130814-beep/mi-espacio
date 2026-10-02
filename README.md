@@ -26,12 +26,14 @@ Ahí ves todo en una sola pantalla, con:
   del celular, elegir **varios archivos a la vez** (con barra de progreso y un
   registro por archivo) y **reemplazar el repetido** en lugar de duplicarlo.
 - **📅 Calendario** (el centro del sistema): ocupa **casi toda el área de
-  trabajo**; ves **todo** lo guardado colocado sobre el día de su fecha (cada
-  punto con el color de su categoría). **Al hacer clic en un día se abre su
-  área de trabajo** con todos los botones activos sobre esa fecha: **＋ Nuevo**,
-  **📎 Adjuntar archivo**, **📷 Tomar foto**, **🗂 ver en la lista**,
-  **🗑 Papelera** y **🔍 buscar en ese día**. Hay navegación ‹ día ›, **Hoy**,
-  lista de **lo que viene** y la categoría nueva **Actividad**.
+  trabajo** y la rejilla **no muestra ningún botón** (así queda limpio).
+  **Al hacer clic en un día se abre su área de trabajo** y **ahí se activan
+  todos los botones del sistema dentro del propio día**: la barra completa
+  (🔍 buscar, orden, vista, ⚙ filtros, ➕ agregar, conectar, 🗑 papelera,
+  🩺 revisar, 📦 respaldo) **se mete dentro del área**, más las acciones del
+  día (**＋ Nuevo**, **📎 adjuntar**, **📷 foto**, **🗂 ver en la lista**), la
+  navegación ‹ día › / **Hoy** / **📅 Calendario**, la lista de **lo que viene**
+  y la categoría nueva **Actividad**.
 - **Siempre al día:** la web **abre en el calendario**, **recuerda tu vista,
   día y búsqueda** en cada equipo y **se actualiza sola** cuando publicas una
   versión nueva.

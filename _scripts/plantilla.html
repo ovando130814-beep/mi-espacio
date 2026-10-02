@@ -221,10 +221,6 @@
   .dtTit{flex:1;min-width:210px;display:flex;flex-direction:column;gap:3px}
   .dtFecha{font-size:19px;font-weight:800;margin:0}
   .dtSuma{font-size:12.5px;color:var(--muted)}
-  .dtBuscar{margin-bottom:12px}
-  .dtBuscar input{width:100%;padding:12px 14px;min-height:46px;font-size:15px;
-    border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--txt)}
-  .dtBuscar input:focus{border-color:var(--accent);outline:none}
   .dtVacio{border:1px dashed var(--line);border-radius:14px;padding:26px 18px;text-align:center;
     color:var(--muted);font-size:15px;background:var(--panel);line-height:1.55}
   .dtVacio .accDia{margin-top:16px}
@@ -233,6 +229,17 @@
     .dtCab{padding:10px 11px}
     .dtCab button{min-height:44px}
   }
+
+  /* ---------- el calendario no enseña botones ---------- */
+  body.vcal header .toolbar,
+  body.vcal header .chips,
+  body.vcal header .panel{display:none}
+  body.vcal:not(.vtrabajo) nav.barra{display:none}
+  body.vcal:not(.vtrabajo) #list .calCab button{display:none}
+  #huecoBarra{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:11px 12px;margin:0 0 13px}
+  #huecoBarra .toolbar{margin-top:0}
+  #huecoBarra .panel{margin-top:10px}
 
   /* ------------------------------------------------------------ barra móvil */
   .barra{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
@@ -612,7 +619,6 @@ let calHoy = isoLocal(new Date());
 let calSel = calHoy;
 let calAnho = +calHoy.slice(0,4), calMes = +calHoy.slice(5,7) - 1;
 let diaTrabajo = false;             /* true = el día elegido abrió su área de trabajo */
-let qDia = "";                      /* texto del buscador "buscar en este día" */
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1169,14 +1175,7 @@ function resalta(txt){
   catch(e){ return base; }
 }
 
-function filtrados(){
-  const q = $("q").value.trim().toLowerCase();
-  const orden = $("orden").value;
-  const desde = $("desde").value, hasta = $("hasta").value;
-  let r = DATOS.filter(x => activos.has(x.c));
-  if(desde) r = r.filter(x => (x.f||"") >= desde);
-  if(hasta) r = r.filter(x => (x.f||"") <= hasta);
-  if(q) r = r.filter(x => [x.t,x.m,x.e,x.u,x.c].join(" ").toLowerCase().includes(q));
+function ordenarArr(r, orden){
   r.sort((a,b)=>{
     if(orden==="fecha-asc")    return (a.f||"").localeCompare(b.f||"");
     if(orden==="titulo-asc")   return (a.t||"").localeCompare(b.t||"","es");
@@ -1185,6 +1184,17 @@ function filtrados(){
     return (b.f||"").localeCompare(a.f||"");
   });
   return r;
+}
+
+function filtrados(){
+  const q = $("q").value.trim().toLowerCase();
+  const orden = $("orden").value;
+  const desde = $("desde").value, hasta = $("hasta").value;
+  let r = DATOS.filter(x => activos.has(x.c));
+  if(desde) r = r.filter(x => (x.f||"") >= desde);
+  if(hasta) r = r.filter(x => (x.f||"") <= hasta);
+  if(q) r = r.filter(x => [x.t,x.m,x.e,x.u,x.c].join(" ").toLowerCase().includes(q));
+  return ordenarArr(r, orden);
 }
 
 function accionesHTML(i, o){
@@ -1337,25 +1347,20 @@ function renderCalendario(){
   h += '</div><div class="leyenda">' +
        CATS.map(c => `<span class="badge b-${c}">${c}</span>`).join("") + '</div>';
 
-  /* ---- día elegido ---- */
+  /* ---- día elegido: la rejilla NO enseña botones ----
+     (todo se activa dentro del área de trabajo al hacer clic) */
   h += '<div class="calDiaSel">';
   if(!calSel){
-    h += '<h2>📅 Elige un día</h2><div class="meta">Pulsa un día del calendario para ver lo que hay ' +
-         'ese día y para agregar algo nuevo. <button onclick="calIrHoy()">Ver hoy</button></div>';
+    h += '<h2>📅 Elige un día</h2><div class="meta">Haz clic en cualquier día: se abrirá ' +
+         '<b>su área de trabajo</b> y ahí <b>se activan todos los botones</b> del sistema sobre esa ' +
+         'fecha (nuevo, adjuntar archivo, tomar foto, papelera, revisar, respaldo…).</div>';
   }else{
     const p = calSel.split("-").map(Number);
     const arr = porDia[calSel] || [];
     h += `<h2>📅 ${DIAS_SEMANA[new Date(p[0], p[1]-1, p[2]).getDay()]} ${fmtFecha(calSel).txt}` +
          ` <span class="suma">${arr.length ? arr.length + " elemento(s)" : "sin nada"}</span></h2>` +
-         `<div class="accDia">` +
-         `<button class="pri" data-act="nuevo">＋ Nuevo en este día</button>` +
-         `<button data-act="adjuntar">📎 Adjuntar archivo</button>` +
-         `<button data-act="foto">📷 Tomar foto</button>` +
-         `<button data-act="lista">🗂 Ver solo ese día en la lista</button></div>`;
-    h += arr.length ? arr.map(o => tarjetaHTML(DATOS.indexOf(o), o)).join("")
-      : '<div class="meta">No hay nada guardado en este día. Pulsa «＋ Nuevo en este día» para programar ' +
-        'algo (la categoría sale como <b>Actividad</b> y puedes cambiarla), o adjunta un archivo o toma ' +
-        'una foto: <b>todo queda con la fecha de este día</b>.</div>';
+         `<div class="meta">Haz clic en este día (o en cualquier otro) para abrir <b>su área de ` +
+         `trabajo</b>: ahí se activan todos los botones sobre esta fecha.</div>`;
   }
   h += '</div>';
 
@@ -1419,6 +1424,7 @@ function dtHoy(){
 }
 
 function renderDiaTrabajo(){
+  devolverBarra();
   const list = $("list");
   const conFecha = DATOS.filter(o => /^\d{4}-\d{2}-\d{2}$/.test(o.f || ""));
   const porDia = {};
@@ -1429,9 +1435,11 @@ function renderDiaTrabajo(){
   pintarSuperiorDia(porDia, conFecha, enMes, sinFecha);
 
   const arr = porDia[calSel] || [];
-  const q = (qDia || "").trim().toLowerCase();
-  const muestran = q ? arr.filter(o => (o.t + " " + o.m + " " + o.e + " " + o.u).toLowerCase().indexOf(q) > -1)
-                     : arr;
+  const q = ($("q").value || "").trim().toLowerCase();
+  let muestran = arr;
+  if(q) muestran = muestran.filter(o =>
+    [o.t, o.m, o.e, o.u, o.c].join(" ").toLowerCase().indexOf(q) > -1);
+  muestran = ordenarArr(muestran.slice(), $("orden").value);   /* el orden también manda en el día */
   const p = calSel.split("-").map(Number);
   const nDia = new Date(p[0], p[1] - 1, p[2]);
   const hayAct = arr.filter(o => o.c === "Actividad").length;
@@ -1446,57 +1454,90 @@ function renderDiaTrabajo(){
     <button onclick="dtHoy()">Hoy</button>
     <button onclick="dtVolver()" title="Volver a la rejilla del mes">📅 Calendario</button>
   </div>
+  <div id="huecoBarra"></div>
   <div class="accDia">
     <button class="pri" data-act="nuevo">＋ Nuevo</button>
     <button data-act="adjuntar">📎 Adjuntar archivo</button>
     <button data-act="foto">📷 Tomar foto</button>
     <button data-act="lista">🗂 Ver en la lista</button>
-    <button data-act="papelera">🗑 Papelera</button>
-  </div>
-  <div class="dtBuscar">
-    <input id="qDia" type="search" value="${esc(q)}"
-           placeholder="🔍 Buscar en este día (título, motivo, evento, URL)…"
-           aria-label="Buscar en este día">
   </div>`;
 
   h += muestran.length
     ? muestran.map(o => tarjetaHTML(DATOS.indexOf(o), o)).join("")
     : `<div class="dtVacio">${q
-        ? `Ningún resultado para «<b>${esc(q)}</b>» entre los ${arr.length} elemento(s) de este día.`
-        : `No hay nada guardado este día todavía.<br>Usa los botones de arriba: ` +
-          `<b>todo queda con la fecha de ${esc(fmtFecha(calSel).txt)}</b>.`}</div>`;
+        ? `Nada de este día coincide con «<b>${esc(q)}</b>».`
+        : `No hay nada guardado este día todavía.<br>Todo lo que hagas con los ` +
+          `botones de arriba queda con la fecha de <b>${esc(fmtFecha(calSel).txt)}</b>.`}</div>`;
 
   list.innerHTML = h;
+  meterBarra();              /* el sistema entera al área del día elegido */
   list.querySelectorAll("[data-act]").forEach(el => {
     el.onclick = () => diaAccion(el.dataset.act);
   });
-  const qi = $("qDia");
-  if(qi) qi.oninput = () => {
-    const pos = qi.selectionStart;
-    qDia = qi.value;
-    renderDiaTrabajo();
-    guardarEstado();
-    const n = $("qDia");
-    if(n){ n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} }
-  };
 }
 
 /* recuerda vista, búsqueda y día elegido para que cada equipo abra igual */
 function guardarEstado(){
   try{
     localStorage.setItem("miespacio_estado", JSON.stringify({
-      q: $("q").value, qd: qDia, dia: calSel, trabajo: diaTrabajo
+      q: $("q").value, dia: calSel, trabajo: diaTrabajo
     }));
   }catch(e){}
 }
 
+/* La barra de herramientas del sistema (buscador, orden, vista, filtros,
+   +Agregar, Conectar, Papelera, Revisar, Respaldo) ENTRA en el área de
+   trabajo del día elegido y vuelve al encabezado al salir. Los nodos
+   conservan sus eventos al moverse. */
+function meterBarra(){
+  const hueco = $("huecoBarra");
+  const tb = document.querySelector(".toolbar");
+  if(!hueco || !tb || tb.parentElement === hueco) return;
+  moverConFoco(() => {
+    hueco.appendChild(tb);
+    const pa = document.getElementById("panel");
+    if(pa && pa.parentElement !== hueco) hueco.appendChild(pa);
+  });
+}
+function devolverBarra(){
+  const hdr = document.querySelector("header");
+  const marca = document.querySelector("header .marca");
+  const tb = document.querySelector(".toolbar");
+  if(!hdr || !marca || !tb) return;
+  moverConFoco(() => {
+    if(tb.parentElement !== hdr) marca.insertAdjacentElement("afterend", tb);
+    const ch = document.getElementById("chips");
+    const ref = (ch && ch.parentElement === hdr) ? ch : tb;
+    const pa = document.getElementById("panel");
+    if(pa && pa.parentElement !== hdr) ref.insertAdjacentElement("afterend", pa);
+  });
+}
+/* mover la barra sin perder lo que estabas escribiendo */
+function moverConFoco(fn){
+  const a = document.activeElement;
+  const id = a && a.id ? a.id : "";
+  let c = null;
+  if(id){ try{ c = a.selectionStart; }catch(e){} }
+  fn();
+  if(id){
+    const f = document.getElementById(id);
+    if(f && f.focus){
+      f.focus();
+      if(c != null){ try{ f.setSelectionRange(c, c); }catch(e){} }
+    }
+  }
+}
+
 function render(){
   guardarEstado();
+  devolverBarra();           /* la barra nunca queda dentro de #list al repintar */
   const filas = filtrados();
   const list = $("list");
   const orden = $("orden").value;
 
   document.body.classList.toggle("vcal", vista === "calendario");
+  document.body.classList.toggle("vtrabajo",
+    vista === "calendario" && diaTrabajo && !!calSel);
   if(vista === "calendario"){
     if(diaTrabajo && calSel) renderDiaTrabajo();
     else renderCalendario();
@@ -2344,7 +2385,6 @@ document.addEventListener("visibilitychange", () => { if(!document.hidden) vigil
     const e0 = JSON.parse(localStorage.getItem("miespacio_estado") || "null");
     if(e0){
       if(e0.q) $("q").value = e0.q;
-      if(typeof e0.qd === "string") qDia = e0.qd;
       if(/^\d{4}-\d{2}-\d{2}$/.test(e0.dia || "")){
         calSel = e0.dia;
         calAnho = +e0.dia.slice(0,4); calMes = +e0.dia.slice(5,7) - 1;

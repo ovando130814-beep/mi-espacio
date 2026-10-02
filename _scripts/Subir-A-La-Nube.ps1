@@ -16,6 +16,8 @@
     .\Subir-A-La-Nube.ps1 -BorrarEnLaNube        # lista que se va a borrar alla
     .\Subir-A-La-Nube.ps1 -Reconfigurar          # cambiar usuario/repositorio
     .\Subir-A-La-Nube.ps1 -SinValidar            # sube aunque el catalogo tenga errores
+
+  Codigo de salida: 0 = todo bien | 1 = hubo un error y NO se subio nada
 #>
 param(
   [string]$Mensaje = '',
@@ -205,13 +207,13 @@ if ($Diagnostico) {
     Write-Host "    y pegala aqui (una sola vez):" -ForegroundColor Cyan
     Write-Host "      https://github.com/settings/ssh/new   (Title: MiEspacio, Key type: Authentication Key)"
     Write-Host "    Luego vuelve a ejecutar este diagnostico."
-    return
+    exit 1
   }
 
   Write-Host "[2] Contenido local..."
   foreach ($n in @('index.html','registro.csv')) {
     if (Test-Path (Join-Path $Raiz $n)) { Write-Host "    OK  $n" }
-    else { Write-Host "    FALLO: falta $n" -ForegroundColor Red; Write-Host "    Ejecuta .\Generar-Indice.ps1"; return }
+    else { Write-Host "    FALLO: falta $n" -ForegroundColor Red; Write-Host "    Ejecuta .\Generar-Indice.ps1"; exit 1 }
   }
 
   Write-Host "[2b] Validando el catalogo..."
@@ -222,7 +224,7 @@ if ($Diagnostico) {
     if ($LASTEXITCODE -ne 0) {
       Write-Host "    FALLO: el catalogo tiene errores y NO se sube." -ForegroundColor Red
       Write-Host "    Corrigelos y vuelve a intentar (mira el listado de arriba)."
-      return
+      exit 1
     }
     Write-Host "    OK  catalogo valido" -ForegroundColor Green
   }
@@ -242,7 +244,7 @@ if ($Diagnostico) {
       Write-Host "    Crea el repositorio una vez en: https://github.com/new  (nombre: $repo, Public)"
       Write-Host "    y registra la llave en:          https://github.com/settings/ssh/new"
     }
-    return
+    exit 1
   }
   Write-Host "    OK  contenido en GitHub" -ForegroundColor Green
 
@@ -291,7 +293,7 @@ if (-not $ssh.registrada) {
   Write-Host "  2. Abre: https://github.com/settings/ssh/new" -ForegroundColor Cyan
   Write-Host "     Title: MiEspacio   |   Key type: Authentication Key   |   pega y pulsa Add key"
   Write-Host "  3. Vuelve a ejecutar este comando." -ForegroundColor Cyan
-  return
+  exit 1
 }
 Write-Host ("  OK {0} (no caduca)" -f $ssh.usuario) -ForegroundColor Green
 
@@ -309,7 +311,7 @@ if ($SinValidar) {
     Write-Host "SUBIDA CANCELADA: registro.csv tiene errores." -ForegroundColor Red
     Write-Host "Corrigelos (prueba .\Validar-Catalogo.ps1 -Corregir) y vuelve a subir." -ForegroundColor Yellow
     Write-Host "Si sabes lo que haces y aun asi quieres subir:  .\Subir-A-La-Nube.ps1 -SinValidar" -ForegroundColor Yellow
-    return
+    exit 1
   }
   Write-Host "  OK  catalogo valido." -ForegroundColor Green
 }
@@ -337,7 +339,7 @@ if ($pendientes.Count -eq 0) {
   if ($err) {
     Write-Host "ERROR al subir:" -ForegroundColor Red; Write-Host $err
     Write-Host "Ejecuta:  .\Subir-A-La-Nube.ps1 -Diagnostico"
-    return
+    exit 1
   }
   Write-Host "  Subido." -ForegroundColor Green
 }

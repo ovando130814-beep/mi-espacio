@@ -56,6 +56,9 @@ $json = $json.Replace('</', '<\/')
 $plantilla = Get-Content -Path $tplPath -Raw -Encoding UTF8
 $html = $plantilla.Replace('__CATALOGO_JSON__', $json)
 
+# marca de versión: la web la compara y se recarga sola cuando hay versión nueva
+$html = $html.Replace('__VERSION__', (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
+
 $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 [System.IO.File]::WriteAllText($outPath, $html, $utf8Bom)
 

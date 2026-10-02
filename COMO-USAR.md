@@ -78,6 +78,22 @@ agregas algo en otro, **los dos cambios quedan**. Y si intentas modificar un
 elemento que ya no existe en la nube, la web te avisa en lugar de escribir
 encima. Si dudas, recarga la página antes de guardar.
 
+### La web siempre te muestra lo mismo en todos lados
+
+- **Abre en el calendario** y **recuerda dónde ibas**: la vista (lista o
+  calendario), **el día elegido**, si tenías el área de trabajo abierta y lo
+  que estabas buscando. Si lo dejas en un equipo, al volver a entrar ahí
+  mismo lo encuentras.
+- **Se pone al día sola**: cuando vuelves a la pestaña, la web comprueba si
+  hay una versión más nueva publicada y **se recarga sola** (si tienes un
+  formulario abierto, solo te avisa para que termines primero).
+- **Solo una vez** (y solo si acabas de actualizar desde una copia vieja):
+  haz una recarga fuerte para quedarte con la versión nueva:
+  - **PC:** `Ctrl` + `F5` (o `Ctrl` + `Shift` + `R`).
+  - **Celular:** cierra la pestaña y ábrela de nuevo; si aun así no cambia,
+    borra los datos del sitio del navegador (Ajustes → Sitio web → borrar
+    datos) o ábrela en ventana de incógnito.
+
 ### Subir fotos y archivos desde la web (celular o PC)
 
 Dentro del formulario (**+ Agregar** o **Modificar**) hay dos botones:

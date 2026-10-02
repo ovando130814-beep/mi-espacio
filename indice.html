@@ -591,7 +591,16 @@ const colorDe = c => COLOR_CAT[c] || "var(--muted)";
 const DIAS_SEMANA = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 
 let activos = new Set(CATS);
-let vista = "lista";
+/* versión de esta publicación: si la nube tiene otra más nueva, la web se
+   actualiza sola (la escribe Generar-Indice.ps1) */
+const VERSION = "2026-10-02 12:30:18";
+
+/* la web recuerda la vista con la que te quedaste (por defecto: el calendario) */
+let vista = "calendario";
+try{
+  const v = localStorage.getItem("miespacio_vista");
+  if(["lista","compacta","linea","calendario"].indexOf(v) > -1) vista = v;
+}catch(e){}
 let agrupa = true;
 let editando = null, editandoOriginal = null, borrando = null;
 
@@ -602,6 +611,7 @@ let calHoy = isoLocal(new Date());
 let calSel = calHoy;
 let calAnho = +calHoy.slice(0,4), calMes = +calHoy.slice(5,7) - 1;
 let diaTrabajo = false;             /* true = el día elegido abrió su área de trabajo */
+let qDia = "";                      /* texto del buscador "buscar en este día" */
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1418,7 +1428,7 @@ function renderDiaTrabajo(){
   pintarSuperiorDia(porDia, conFecha, enMes, sinFecha);
 
   const arr = porDia[calSel] || [];
-  const q = (($("qDia") && $("qDia").value) || "").trim().toLowerCase();
+  const q = (qDia || "").trim().toLowerCase();
   const muestran = q ? arr.filter(o => (o.t + " " + o.m + " " + o.e + " " + o.u).toLowerCase().indexOf(q) > -1)
                      : arr;
   const p = calSel.split("-").map(Number);
@@ -1462,13 +1472,25 @@ function renderDiaTrabajo(){
   const qi = $("qDia");
   if(qi) qi.oninput = () => {
     const pos = qi.selectionStart;
+    qDia = qi.value;
     renderDiaTrabajo();
+    guardarEstado();
     const n = $("qDia");
     if(n){ n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} }
   };
 }
 
+/* recuerda vista, búsqueda y día elegido para que cada equipo abra igual */
+function guardarEstado(){
+  try{
+    localStorage.setItem("miespacio_estado", JSON.stringify({
+      q: $("q").value, qd: qDia, dia: calSel, trabajo: diaTrabajo
+    }));
+  }catch(e){}
+}
+
 function render(){
+  guardarEstado();
   const filas = filtrados();
   const list = $("list");
   const orden = $("orden").value;
@@ -2203,7 +2225,9 @@ function terminarPregunta(ok){
 /* ========================================================== EVENTOS */
 $("q").oninput = () => render();
 $("orden").onchange = () => render();
-$("vista").onchange = e => { vista = e.target.value; render(); };
+$("vista").onchange = e => { vista = e.target.value;
+  try{ localStorage.setItem("miespacio_vista", vista); }catch(err){}
+  render(); };
 $("desde").onchange = render;
 $("hasta").onchange = render;
 $("btnFiltros").onclick = () => alternarPanel();
@@ -2239,6 +2263,7 @@ $("mVista").onclick = () => {
   const opciones = ["lista","compacta","linea","calendario"];
   vista = opciones[(opciones.indexOf(vista)+1) % opciones.length];
   $("vista").value = vista;
+  try{ localStorage.setItem("miespacio_vista", vista); }catch(err){}
   render();
   toast("Vista: " + $("vista").selectedOptions[0].textContent);
 };
@@ -2289,12 +2314,44 @@ window.addEventListener("online", pintarOnline);
 window.addEventListener("offline", pintarOnline);
 window.addEventListener("hashchange", resaltarHash);
 
+/* si la nube publicó una versión más nueva, esta web se pone al día sola */
+async function vigilarVersion(){
+  try{
+    const r = await fetch(location.pathname + "?actualiza=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) return;
+    const t = await r.text();
+    const m = /const VERSION = "([^"]+)"/.exec(t);
+    if(!m || m[1] === VERSION) return;
+    if(document.querySelector(".fondo.on")){
+      toast("Hay una versión nueva de tu espacio: recarga cuando termines");
+      return;
+    }
+    toast("Versión nueva publicada: actualizando…");
+    setTimeout(() => location.reload(), 1500);
+  }catch(e){}
+}
+window.addEventListener("focus", vigilarVersion);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) vigilarVersion(); });
+
 /* =========================================================== INICIO */
 (async function inicio(){
   if(localStorage.getItem("miespacio_tema") === "claro"){
     document.body.classList.add("claro");
     document.querySelector('meta[name=theme-color]').content = "#f2f5f9";
   }
+  try{                                   /* abre igual que la última vez */
+    const e0 = JSON.parse(localStorage.getItem("miespacio_estado") || "null");
+    if(e0){
+      if(e0.q) $("q").value = e0.q;
+      if(typeof e0.qd === "string") qDia = e0.qd;
+      if(/^\d{4}-\d{2}-\d{2}$/.test(e0.dia || "")){
+        calSel = e0.dia;
+        calAnho = +e0.dia.slice(0,4); calMes = +e0.dia.slice(5,7) - 1;
+        diaTrabajo = !!e0.trabajo;
+      }
+    }
+  }catch(err){}
+  $("vista").value = vista;
   pintarOnline();
   const remoto = await bajarCSV();
   if(remoto) DATOS = remoto.map(aObj);

@@ -32,6 +32,9 @@ Ahí ves todo en una sola pantalla, con:
   **📎 Adjuntar archivo**, **📷 Tomar foto**, **🗂 ver en la lista**,
   **🗑 Papelera** y **🔍 buscar en ese día**. Hay navegación ‹ día ›, **Hoy**,
   lista de **lo que viene** y la categoría nueva **Actividad**.
+- **Siempre al día:** la web **abre en el calendario**, **recuerda tu vista,
+  día y búsqueda** en cada equipo y **se actualiza sola** cuando publicas una
+  versión nueva.
 - **📦 Respaldo en 1 clic**: un botón descarga **todo** tu espacio (catálogo,
   papelera y carpetas) en un solo archivo `.zip`, con un `LEEME` dentro con los
   pasos para restaurarlo si algún día hace falta.

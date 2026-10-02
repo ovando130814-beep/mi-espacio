@@ -25,10 +25,12 @@ Ahí ves todo en una sola pantalla, con:
 - **📷 Subir archivos desde la web**: botón para **tomar foto** con la cámara
   del celular, elegir **varios archivos a la vez** (con barra de progreso y un
   registro por archivo) y **reemplazar el repetido** en lugar de duplicarlo.
-- **📅 Calendario**: ves **todo** lo guardado colocado sobre el día de su fecha
-  (cada punto con el color de su categoría), eliges un día para verlo y
-  **agregar ahí mismo**, y hay una lista de **lo que viene**. Para programar
-  existe la categoría nueva **Actividad**.
+- **📅 Calendario** (el centro del sistema): ocupa **casi toda el área de
+  trabajo**; ves **todo** lo guardado colocado sobre el día de su fecha (cada
+  punto con el color de su categoría). Al elegir un día **se activan las
+  estadísticas de ese día** y todas las opciones: **＋ Nuevo**, **📎 Adjuntar
+  archivo**, **📷 Tomar foto** y **🗂 ver ese día en la lista**. Hay lista de
+  **lo que viene** y la categoría nueva **Actividad**.
 - **📦 Respaldo en 1 clic**: un botón descarga **todo** tu espacio (catálogo,
   papelera y carpetas) en un solo archivo `.zip`, con un `LEEME` dentro con los
   pasos para restaurarlo si algún día hace falta.

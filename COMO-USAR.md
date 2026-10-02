@@ -182,25 +182,45 @@ actividades) colocado sobre el día de su fecha.
 | **PC** | Arriba, en el desplegable **Vista** → **📅 Calendario** |
 | **Celular** | Barra de abajo → **☰ Vista** (repite hasta llegar a **📅 Calendario**) o el mismo desplegable |
 
-### Qué ves
+### Qué ves (el calendario manda)
 
-- La rejilla del mes (**lunes primero**) con **hoy** marcado y el día elegido
-  resaltado; **‹ ›** cambian de mes y **Hoy** vuelve al día de hoy.
+- Ocupa **casi toda el área de trabajo**: rejilla grande del mes (**lunes
+  primero**), **hoy** marcado y el día elegido resaltado; **‹ ›** cambian de mes
+  y **Hoy** vuelve al día de hoy.
 - Cada **punto** es un elemento guardado ese día; el **color** indica su
   categoría (leyenda debajo de la rejilla). Si un día tiene más de 4, sale **+N**.
+- Las **estadísticas de arriba se activan con el día elegido**: cuántos
+  elementos hay ese día, cuántas actividades, cuánto hay en el mes y lo que viene.
 - Debajo, el **día elegido**: sus elementos con sus botones normales
-  (✏️ Modificar, 🗑 Eliminar, 📤 Compartir) y el botón **＋ Agregar en este día**.
+  (✏️ Modificar, 🗑 Eliminar, 📤 Compartir).
 - **🔔 Lo que viene**: los próximos 5 elementos con fecha desde hoy en adelante
   (pulsa uno para saltar a ese día).
 
-> El calendario **muestra todo el catálogo** y no usa los filtros de búsqueda ni
-> los chips; los elementos sin fecha no salen (te avisa el contador del mes).
+### Al elegir un día se activan TODAS las opciones
+
+Justo bajo la fecha del día aparecen las acciones del sistema y **todas
+trabajan sobre ese día**:
+
+| Botón | Qué hace |
+|---|---|
+| **＋ Nuevo en este día** | Abre el formulario con la **fecha ya puesta** y la categoría **Actividad** |
+| **📎 Adjuntar archivo** | Sube y cataloga con la **fecha de ese día** |
+| **📷 Tomar foto** | La foto queda con la **fecha de ese día** |
+| **🗂 Ver solo ese día en la lista** | Filtra la lista a ese día: ahí usas orden, búsqueda, edición, compartir… |
+
+Además, el botón **+ Agregar** de arriba (y el **＋** del celular) abre el
+formulario con la fecha del día elegido mientras estés en el calendario.
+
+> El calendario **muestra todo el catálogo** y no usa la búsqueda ni los chips;
+> para trabajar ese día con filtros, usa **🗂 Ver solo ese día en la lista** y
+> luego **Limpiar filtros**. Los elementos sin fecha no salen (te avisa el
+> contador de arriba).
 
 ### Para programar una actividad
 
 1. Abre el calendario y **pulsa el día** que te interesa.
-2. Pulsa **＋ Agregar en este día**: el formulario se abre con la **fecha ya
-   puesta** y la categoría **Actividad**.
+2. Pulsa **＋ Nuevo en este día** (o 📎 Adjuntar / 📷 Tomar foto, que también
+   quedan con la fecha de ese día).
 3. Escribe el título (obligatorio), el motivo y el evento, y pulsa **Guardar**.
 4. El punto aparece en el día, la actividad entra en **Lo que viene** y también
    se ve en la lista normal con el chip **Actividad**.

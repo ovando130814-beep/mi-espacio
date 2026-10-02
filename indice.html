@@ -194,6 +194,26 @@
     .calCab .mesActual{font-size:15px;min-width:110px}
   }
 
+  /* el calendario manda: ocupa casi toda el área de trabajo */
+  body.vcal .calCab .mesActual{font-size:19.5px}
+  body.vcal .calDow{font-size:12px;letter-spacing:1.2px;padding-bottom:5px}
+  body.vcal .calDia{min-height:106px;padding:10px 5px;gap:6px}
+  body.vcal .calDia .n{font-size:15.5px}
+  body.vcal .calDia .puntos{gap:4px;min-height:10px}
+  body.vcal .calDia .puntos i{width:9px;height:9px}
+  body.vcal .calRes{font-size:13.5px}
+  body.vcal .stats{margin-bottom:8px}
+  @media(max-width:640px){
+    body.vcal .calDia{min-height:74px;padding:7px 3px}
+    body.vcal .calDia .n{font-size:14px}
+    body.vcal .calCab .mesActual{font-size:16.5px}
+  }
+
+  /* acciones que se activan con el día elegido */
+  .accDia{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 13px}
+  .accDia button{flex:1 1 auto;min-width:150px}
+  @media(max-width:640px){ .accDia button{min-width:0;flex:1 1 45%} }
+
   /* ------------------------------------------------------------ barra móvil */
   .barra{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
     background:var(--panel);border-top:1px solid var(--line);
@@ -1223,6 +1243,22 @@ function agregarEnFecha(iso){
   calSeguir(iso);
 }
 
+/* toda opción elegida en el calendario actúa SOBRE el día elegido */
+function diaAccion(que){
+  if(!calSel) return;
+  if(que === "lista"){                /* ese día en la lista: con orden, edición, todo */
+    $("desde").value = calSel;
+    $("hasta").value = calSel;
+    vista = "lista"; $("vista").value = "lista";
+    render();
+    toast("Viendo solo " + fmtFecha(calSel).txt + " · «⚙ Filtros → Limpiar filtros» vuelve a todo");
+    return;
+  }
+  agregar();                          /* fecha = día elegido, categoría Actividad */
+  if(que === "adjuntar") $("fileSubir").click();
+  if(que === "foto") $("fileCamara").click();
+}
+
 function renderCalendario(){
   const list = $("list");
   const conFecha = DATOS.filter(o => /^\d{4}-\d{2}-\d{2}$/.test(o.f || ""));
@@ -1231,6 +1267,21 @@ function renderCalendario(){
   const enMes = conFecha.filter(o => o.f.slice(0,4) === String(calAnho) &&
                                       +o.f.slice(5,7) === calMes + 1).length;
   const sinFecha = DATOS.length - conFecha.length;
+
+  /* ---- el dashboard se activa con el día elegido ---- */
+  const delDia = calSel ? (porDia[calSel] || []) : [];
+  const activDia = delDia.filter(o => o.c === "Actividad").length;
+  const vienen = conFecha.filter(o => o.f >= calHoy).length;
+  $("stats").innerHTML =
+    `<div class="stat"><b>${delDia.length}</b>en ${calSel ? esc(fmtFecha(calSel).txt) : "el día elegido"}</div>` +
+    `<div class="stat"><b>${activDia}</b>actividades del día</div>` +
+    `<div class="stat"><b>${enMes}</b>en ${MESES[calMes]} de ${calAnho}</div>` +
+    `<div class="stat"><b>${vienen}</b>lo que viene</div>` +
+    (sinFecha ? `<div class="stat"><b>${sinFecha}</b>sin fecha</div>` : "");
+  $("cont").innerHTML = calSel
+    ? `📅 <b>${DIAS_SEMANA[new Date(+calSel.slice(0,4), (+calSel.slice(5,7))-1, +calSel.slice(8,10)).getDay()]} ` +
+      `${esc(fmtFecha(calSel).txt)}</b> · ${delDia.length} ese día · ${DATOS.length} en el catálogo (el calendario no usa filtros)`
+    : `📅 Elige un día del calendario · ${DATOS.length} elementos en el catálogo`;
 
   /* lunes en la primera columna */
   const offset = (new Date(calAnho, calMes, 1).getDay() + 6) % 7;
@@ -1275,11 +1326,15 @@ function renderCalendario(){
     const arr = porDia[calSel] || [];
     h += `<h3>📅 ${DIAS_SEMANA[new Date(p[0], p[1]-1, p[2]).getDay()]} ${fmtFecha(calSel).txt}` +
          ` <span class="suma">${arr.length ? arr.length + " elemento(s)" : "sin nada"}</span></h3>` +
-         `<div class="btns" style="justify-content:flex-start;margin:0 0 11px">` +
-         `<button class="pri" onclick="agregarEnFecha('${calSel}')">＋ Agregar en este día</button></div>`;
+         `<div class="accDia">` +
+         `<button class="pri" data-act="nuevo">＋ Nuevo en este día</button>` +
+         `<button data-act="adjuntar">📎 Adjuntar archivo</button>` +
+         `<button data-act="foto">📷 Tomar foto</button>` +
+         `<button data-act="lista">🗂 Ver solo ese día en la lista</button></div>`;
     h += arr.length ? arr.map(o => tarjetaHTML(DATOS.indexOf(o), o)).join("")
-      : '<div class="meta">No hay nada guardado en este día. Pulsa «＋ Agregar en este día» para ' +
-        'programar algo (la categoría sale como <b>Actividad</b> y puedes cambiarla).</div>';
+      : '<div class="meta">No hay nada guardado en este día. Pulsa «＋ Nuevo en este día» para programar ' +
+        'algo (la categoría sale como <b>Actividad</b> y puedes cambiarla), o adjunta un archivo o toma ' +
+        'una foto: <b>todo queda con la fecha de este día</b>.</div>';
   }
   h += '</div>';
 
@@ -1301,6 +1356,9 @@ function renderCalendario(){
     el.onclick = ir;
     el.onkeydown = e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); ir(); } };
   });
+  list.querySelectorAll("[data-act]").forEach(el => {
+    el.onclick = () => diaAccion(el.dataset.act);
+  });
 }
 
 function render(){
@@ -1308,13 +1366,10 @@ function render(){
   const list = $("list");
   const orden = $("orden").value;
 
-  if(vista === "calendario"){
-    $("cont").innerHTML = `<b>${DATOS.length}</b> elementos en el catálogo · el calendario muestra todo, ` +
-      `sin filtros`;
-    renderCalendario();
-    return;
-  }
+  document.body.classList.toggle("vcal", vista === "calendario");
+  if(vista === "calendario"){ renderCalendario(); return; }
 
+  renderStats();               /* de vuelta: panel general del sistema */
   $("cont").innerHTML = filas.length === DATOS.length
     ? `<b>${DATOS.length}</b> elementos`
     : `<b>${filas.length}</b> de ${DATOS.length} elementos (filtros activos)`;
@@ -1461,8 +1516,10 @@ function agregar(){
   ocultarProgreso();
   $("formTitulo").textContent = "Agregar elemento";
   ["f_titulo","f_motivo","f_evento","f_url","f_ubi"].forEach(id=>$(id).value="");
-  $("f_fecha").value = new Date().toISOString().slice(0,10);
-  $("f_cat").value = "URL-Trabajo";
+  /* en el calendario todo lo nuevo nace en el día elegido */
+  const enCalendario = (vista === "calendario" && calSel);
+  $("f_fecha").value = enCalendario ? calSel : new Date().toISOString().slice(0,10);
+  $("f_cat").value = enCalendario ? "Actividad" : "URL-Trabajo";
   pintarRuta();
   $("formSinToken").classList.toggle("oculto", !!token());
   abrir("fondoForm");

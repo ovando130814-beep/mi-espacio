@@ -16,7 +16,7 @@
     --bg:#0f141a; --panel:#161d26; --panel2:#1c2531; --line:#2a3644;
     --txt:#e6edf3; --muted:#93a5b8; --dim:#93a5b8;
     --accent:#4da3ff; --ok:#3fb950; --mal:#ff7b72; --aviso-bg:#3a2f14;
-    --c1:#4da3ff; --c2:#f0a742; --c3:#b083f0; --c4:#3fb950; --c5:#ff7b72;
+    --c1:#4da3ff; --c2:#f0a742; --c3:#b083f0; --c4:#3fb950; --c5:#ff7b72; --c6:#22c1dc;
     --sombra:0 6px 24px rgba(0,0,0,.35);
     color-scheme:dark;
   }
@@ -71,6 +71,7 @@
   .chip[data-c="Manual"].on{background:var(--c3)}
   .chip[data-c="Imagen-Sistema"].on{background:var(--c4)}
   .chip[data-c="Nota"].on{background:var(--c5)}
+  .chip[data-c="Actividad"].on{background:var(--c6)}
 
   .panel{border-top:1px dashed var(--line);margin-top:9px;padding-top:10px}
   .rango{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -115,11 +116,13 @@
   .b-Manual{background:rgba(176,131,240,.18);color:#6b3fc9}
   .b-Imagen-Sistema{background:rgba(63,185,80,.18);color:#1a6b30}
   .b-Nota{background:rgba(255,123,114,.18);color:#b3372d}
+  .b-Actividad{background:rgba(34,193,222,.18);color:#0a6a79}
   body:not(.claro) .b-Personal{color:#6cb6ff}
   body:not(.claro) .b-URL-Trabajo{color:#ffb85c}
   body:not(.claro) .b-Manual{color:#c4a0ff}
   body:not(.claro) .b-Imagen-Sistema{color:#55d670}
   body:not(.claro) .b-Nota{color:#ff948c}
+  body:not(.claro) .b-Actividad{color:#5ee2f5}
   .meta{font-size:13px;color:var(--muted);margin-top:5px;word-break:break-word}
   .meta .k{color:var(--dim);font-weight:700}
   .ev{display:inline-block;background:var(--panel2);border:1px dashed var(--line);
@@ -151,6 +154,45 @@
     border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:7px}
   .tarjeta-compacta .fecha{min-width:52px;text-align:left}
   .tarjeta-compacta .cuerpo{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+
+  /* -------------------------------------------------------- calendario */
+  .calCab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .calCab .mesActual{flex:1;text-align:center;font-size:16.5px;font-weight:800;text-transform:capitalize}
+  .calCab button{padding:10px 14px}
+  .calRes{font-size:12.5px;color:var(--muted);margin:9px 0 8px}
+  .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .calDow{font-size:11px;text-align:center;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .calDia{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:54px;
+    padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    gap:3px;cursor:pointer;transition:border-color .15s}
+  .calDia:hover{border-color:var(--accent)}
+  .calDia .n{font-size:13.5px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.2}
+  .calDia.fuera{opacity:.38}
+  .calDia.hoy{border-color:var(--accent)}
+  .calDia.hoy .n{color:var(--accent);font-weight:800}
+  .calDia.sel{outline:2px solid var(--accent);outline-offset:1px;background:var(--panel2)}
+  .calDia .puntos{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:7px;max-width:100%}
+  .calDia .puntos i{width:7px;height:7px;border-radius:50%;display:block;flex:0 0 auto}
+  .calDia .mas{font-size:10.5px;color:var(--muted);line-height:1}
+  .leyenda{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+  .calDiaSel{margin-top:15px;border-top:1px dashed var(--line);padding-top:13px}
+  .calDiaSel h3{margin:0 0 10px;font-size:15.5px;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+  .calDiaSel .suma{font-size:12.5px;color:var(--muted);font-weight:600}
+  .calProx{margin-top:16px;border-top:1px dashed var(--line);padding-top:13px}
+  .calProx h3{margin:0 0 9px;font-size:12.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent)}
+  .proxItem{display:flex;gap:11px;align-items:center;background:var(--panel2);border:1px solid var(--line);
+    border-radius:11px;padding:9px 11px;margin-bottom:8px;cursor:pointer}
+  .proxItem:hover{border-color:var(--accent)}
+  .proxItem .pf{flex:0 0 auto;min-width:46px;text-align:center;font-size:11.5px;color:var(--muted);
+    text-transform:uppercase}
+  .proxItem .pf b{display:block;font-size:16px;color:var(--txt);font-variant-numeric:tabular-nums}
+  .proxItem .pt{flex:1;min-width:0;font-size:13.5px;word-break:break-word}
+  @media(max-width:640px){
+    .calDia{min-height:46px;border-radius:8px;gap:2px}
+    .calDia .n{font-size:12.5px}
+    .calDow{font-size:10px}
+    .calCab .mesActual{font-size:15px;min-width:110px}
+  }
 
   /* ------------------------------------------------------------ barra móvil */
   .barra{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
@@ -297,6 +339,7 @@
       <option value="lista">☰ Lista</option>
       <option value="compacta">≣ Compacta</option>
       <option value="linea">◉ Línea de tiempo</option>
+      <option value="calendario">📅 Calendario</option>
     </select>
     <button id="btnFiltros" aria-expanded="false">⚙ Filtros</button>
     <button class="pri solo-grande" id="btnAdd">+ Agregar</button>
@@ -350,7 +393,7 @@
       <div class="campo"><label for="f_cat">Categoría</label>
         <select id="f_cat">
           <option>Personal</option><option>URL-Trabajo</option><option>Manual</option>
-          <option>Imagen-Sistema</option><option>Nota</option>
+          <option>Imagen-Sistema</option><option>Nota</option><option>Actividad</option>
         </select></div>
     </div>
     <div class="campo"><label for="f_motivo">Motivo (¿por qué lo guardas?)</label>
@@ -496,17 +539,29 @@
 <script>
 let DATOS = __CATALOGO_JSON__;
 
-const CATS = ["Personal","URL-Trabajo","Manual","Imagen-Sistema","Nota"];
+const CATS = ["Personal","URL-Trabajo","Manual","Imagen-Sistema","Nota","Actividad"];
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
                "septiembre","octubre","noviembre","diciembre"];
 const ENC = ["Fecha","Categoria","Titulo","Tipo","Ubicacion","URL","Motivo","Evento"];
 const CARPETAS = {"Personal":"01-Archivos-Personales","URL-Trabajo":"02-URLs-Trabajo",
-                  "Manual":"03-Manuales","Imagen-Sistema":"04-Imagenes-Sistemas","Nota":"05-Notas-y-Eventos"};
+                  "Manual":"03-Manuales","Imagen-Sistema":"04-Imagenes-Sistemas",
+                  "Nota":"05-Notas-y-Eventos","Actividad":"05-Notas-y-Eventos"};
+const COLOR_CAT = {"Personal":"var(--c1)","URL-Trabajo":"var(--c2)","Manual":"var(--c3)",
+                   "Imagen-Sistema":"var(--c4)","Nota":"var(--c5)","Actividad":"var(--c6)"};
+const colorDe = c => COLOR_CAT[c] || "var(--muted)";
+const DIAS_SEMANA = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 
 let activos = new Set(CATS);
 let vista = "lista";
 let agrupa = true;
 let editando = null, editandoOriginal = null, borrando = null;
+
+/* estado del calendario (día elegido y mes a la vista) */
+const isoLocal = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") +
+                      "-" + String(d.getDate()).padStart(2,"0");
+let calHoy = isoLocal(new Date());
+let calSel = calHoy;
+let calAnho = +calHoy.slice(0,4), calMes = +calHoy.slice(5,7) - 1;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1132,10 +1187,133 @@ function compactaHTML(i, o){
   </div>`;
 }
 
+/* ========================================================== CALENDARIO */
+/* Muestra TODO lo del catálogo sobre el día de su fecha (con el color de su
+   categoría) y deja agregar, modificar o eliminar desde el día elegido. */
+function calMesA(delta){
+  const d = new Date(calAnho, calMes + delta, 1);
+  calAnho = d.getFullYear(); calMes = d.getMonth();
+  const s = (calSel || "").split("-").map(Number);
+  if(s.length === 3){
+    const ds = new Date(s[0], s[1] - 1, s[2]);
+    if(ds.getFullYear() !== calAnho || ds.getMonth() !== calMes) calSel = "";
+  }
+  render();
+}
+function calIrHoy(){
+  calSel = calHoy;
+  const d = new Date();
+  calAnho = d.getFullYear(); calMes = d.getMonth();
+  render();
+}
+function calElegir(iso){
+  calSel = iso;
+  const y = +iso.slice(0,4), m = +iso.slice(5,7) - 1;
+  if(y !== calAnho || m !== calMes){ calAnho = y; calMes = m; }
+  render();
+}
+function calSeguir(iso){              /* tras guardar, que el calendario lo muestre */
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) return;
+  calSel = iso; calAnho = +iso.slice(0,4); calMes = +iso.slice(5,7) - 1;
+}
+function agregarEnFecha(iso){
+  agregar();                          /* abre el formulario con sus rutinas */
+  $("f_fecha").value = iso;
+  $("f_cat").value = "Actividad";
+  calSeguir(iso);
+}
+
+function renderCalendario(){
+  const list = $("list");
+  const conFecha = DATOS.filter(o => /^\d{4}-\d{2}-\d{2}$/.test(o.f || ""));
+  const porDia = {};
+  conFecha.forEach(o => { (porDia[o.f] = porDia[o.f] || []).push(o); });
+  const enMes = conFecha.filter(o => o.f.slice(0,4) === String(calAnho) &&
+                                      +o.f.slice(5,7) === calMes + 1).length;
+  const sinFecha = DATOS.length - conFecha.length;
+
+  /* lunes en la primera columna */
+  const offset = (new Date(calAnho, calMes, 1).getDay() + 6) % 7;
+  const total = new Date(calAnho, calMes + 1, 0).getDate();
+  const celdas = [];
+  for(let i = offset; i > 0; i--) celdas.push({d: new Date(calAnho, calMes, 1 - i), fuera: true});
+  for(let n = 1; n <= total; n++) celdas.push({d: new Date(calAnho, calMes, n), fuera: false});
+  let extra = 1;
+  while(celdas.length % 7) celdas.push({d: new Date(calAnho, calMes + 1, extra++), fuera: true});
+
+  let h = '<div class="calCab">' +
+    '<button onclick="calMesA(-1)" aria-label="Mes anterior" title="Mes anterior">‹</button>' +
+    '<span class="mesActual">' + MESES[calMes] + ' ' + calAnho + '</span>' +
+    '<button onclick="calMesA(1)" aria-label="Mes siguiente" title="Mes siguiente">›</button>' +
+    '<button onclick="calIrHoy()">Hoy</button></div>' +
+    '<div class="calRes">' + enMes + ' elemento(s) con fecha en ' + MESES[calMes] +
+    (sinFecha ? ' · ' + sinFecha + ' sin fecha (no salen en el calendario)' : '') + '</div>' +
+    '<div class="calGrid">' +
+    ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(x => '<div class="calDow">' + x + '</div>').join("");
+
+  celdas.forEach(c => {
+    const iso = isoLocal(c.d);
+    const arr = porDia[iso] || [];
+    const puntos = arr.slice(0, 4).map(o => '<i style="background:' + colorDe(o.c) + '"></i>').join("");
+    const mas = arr.length > 4 ? '<span class="mas">+' + (arr.length - 4) + '</span>' : "";
+    const cls = "calDia" + (c.fuera ? " fuera" : "") + (iso === calHoy ? " hoy" : "") +
+                (iso === calSel ? " sel" : "");
+    h += `<div class="${cls}" role="button" tabindex="0" data-iso="${iso}" title="${
+            arr.length ? arr.length + " elemento(s): pulsa para ver" : "Pulsa para ver o agregar"}">` +
+          `<span class="n">${c.d.getDate()}</span><span class="puntos">${puntos}</span>${mas}</div>`;
+  });
+  h += '</div><div class="leyenda">' +
+       CATS.map(c => `<span class="badge b-${c}">${c}</span>`).join("") + '</div>';
+
+  /* ---- día elegido ---- */
+  h += '<div class="calDiaSel">';
+  if(!calSel){
+    h += '<h3>📅 Elige un día</h3><div class="meta">Pulsa un día del calendario para ver lo que hay ' +
+         'ese día y para agregar algo nuevo. <button onclick="calIrHoy()">Ver hoy</button></div>';
+  }else{
+    const p = calSel.split("-").map(Number);
+    const arr = porDia[calSel] || [];
+    h += `<h3>📅 ${DIAS_SEMANA[new Date(p[0], p[1]-1, p[2]).getDay()]} ${fmtFecha(calSel).txt}` +
+         ` <span class="suma">${arr.length ? arr.length + " elemento(s)" : "sin nada"}</span></h3>` +
+         `<div class="btns" style="justify-content:flex-start;margin:0 0 11px">` +
+         `<button class="pri" onclick="agregarEnFecha('${calSel}')">＋ Agregar en este día</button></div>`;
+    h += arr.length ? arr.map(o => tarjetaHTML(DATOS.indexOf(o), o)).join("")
+      : '<div class="meta">No hay nada guardado en este día. Pulsa «＋ Agregar en este día» para ' +
+        'programar algo (la categoría sale como <b>Actividad</b> y puedes cambiarla).</div>';
+  }
+  h += '</div>';
+
+  /* ---- lo que viene ---- */
+  const prox = conFecha.filter(o => o.f >= calHoy && o.f !== calSel)
+                        .sort((a,b) => a.f.localeCompare(b.f)).slice(0, 5);
+  if(prox.length){
+    h += '<div class="calProx"><h3>🔔 Lo que viene</h3>' + prox.map(o => {
+      const F = fmtFecha(o.f);
+      return `<div class="proxItem" role="button" tabindex="0" data-iso="${o.f}" title="Ir a ese día">` +
+             `<span class="pf"><b>${F.dia}</b>${F.mes.slice(0,3)}</span>` +
+             `<span class="pt"><span class="badge b-${o.c}">${o.c}</span>${esc(o.t)}</span></div>`;
+    }).join("") + '</div>';
+  }
+
+  list.innerHTML = h;
+  list.querySelectorAll("[data-iso]").forEach(el => {
+    const ir = () => calElegir(el.dataset.iso);
+    el.onclick = ir;
+    el.onkeydown = e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); ir(); } };
+  });
+}
+
 function render(){
   const filas = filtrados();
   const list = $("list");
   const orden = $("orden").value;
+
+  if(vista === "calendario"){
+    $("cont").innerHTML = `<b>${DATOS.length}</b> elementos en el catálogo · el calendario muestra todo, ` +
+      `sin filtros`;
+    renderCalendario();
+    return;
+  }
 
   $("cont").innerHTML = filas.length === DATOS.length
     ? `<b>${DATOS.length}</b> elementos`
@@ -1195,10 +1373,11 @@ function renderStats(){
     <div class="stat"><b>${por("Imagen-Sistema")}</b>imágenes</div>
     <div class="stat"><b>${por("Personal")}</b>personales</div>
     <div class="stat"><b>${por("Nota")}</b>notas</div>
+    <div class="stat"><b>${por("Actividad")}</b>actividades</div>
     <div class="stat"><b style="font-size:13px;padding-top:6px">${rango}</b>rango de fechas</div>`;
 
   $("gCat").innerHTML = barrasHTML(CATS.map(c=>({k:c, n:por(c)})),
-    ["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)"]);
+    CATS.map(c=>COLOR_CAT[c]));
 
   const meses = {};
   DATOS.forEach(r=>{ const k=(r.f||"").slice(0,7); if(k) meses[k]=(meses[k]||0)+1; });
@@ -1329,6 +1508,7 @@ async function guardar(){
     }, (esAlta ? "Agrega: " : "Modifica: ")+t);
     if(!tras) throw new Error("Ese elemento ya no está en la nube (¿lo borraste en otro equipo?): recarga la página");
     DATOS = tras.map(aObj);
+    calSeguir(obj.f);                     /* el calendario sigue el día guardado */
     cerrar("fondoForm");
     renderTodo();
     toast((esAlta ? "Agregado y publicado ✓" : "Modificado y publicado ✓") +
@@ -1887,7 +2067,7 @@ $("papCerrar").onclick = () => cerrar("fondoPap");
 $("papVaciar").onclick = vaciarPapelera;
 document.querySelectorAll("#papTabs button").forEach(b => b.onclick = () => cambiarPestana(b.dataset.p));
 $("mVista").onclick = () => {
-  const opciones = ["lista","compacta","linea"];
+  const opciones = ["lista","compacta","linea","calendario"];
   vista = opciones[(opciones.indexOf(vista)+1) % opciones.length];
   $("vista").value = vista;
   render();

@@ -25,13 +25,14 @@ $ErrorActionPreference = 'Continue'
 
 $csvPath = Join-Path $Raiz 'registro.csv'
 $Columnas = @('Fecha','Categoria','Titulo','Tipo','Ubicacion','URL','Motivo','Evento')
-$Permitidas = @('Personal','URL-Trabajo','Manual','Imagen-Sistema','Nota')
+$Permitidas = @('Personal','URL-Trabajo','Manual','Imagen-Sistema','Nota','Actividad')
 $MapaCat = @{
   'personales'='Personal'; 'personal'='Personal'
   'url'='URL-Trabajo'; 'urls'='URL-Trabajo'; 'url-trabajo'='URL-Trabajo'; 'trabajo'='URL-Trabajo'
   'manual'='Manual'; 'manuales'='Manual'
   'imagen'='Imagen-Sistema'; 'imagenes'='Imagen-Sistema'; 'imagen-sistema'='Imagen-Sistema'
   'nota'='Nota'; 'notas'='Nota'; 'evento'='Nota'; 'eventos'='Nota'
+  'actividad'='Actividad'; 'actividades'='Actividad'
 }
 
 function Salida([string]$txt, [string]$color = 'Gray') {

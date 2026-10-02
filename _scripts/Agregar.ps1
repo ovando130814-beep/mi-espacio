@@ -13,7 +13,7 @@
 #>
 param(
   [Parameter(Mandatory)][string]$Titulo,
-  [Parameter(Mandatory)][ValidateSet('Personal','URL-Trabajo','Manual','Imagen-Sistema','Nota')]
+  [Parameter(Mandatory)][ValidateSet('Personal','URL-Trabajo','Manual','Imagen-Sistema','Nota','Actividad')]
                         [string]$Categoria,
   [string]$Fecha = (Get-Date -Format 'yyyy-MM-dd'),
   [string]$Motivo = '',
@@ -33,6 +33,7 @@ $carpeta = switch ($Categoria) {
   'Manual'         { '03-Manuales' }
   'Imagen-Sistema' { '04-Imagenes-Sistemas' }
   'Nota'           { '05-Notas-y-Eventos' }
+  'Actividad'      { '05-Notas-y-Eventos' }
 }
 
 # Convierte la ruta a relativa dentro de MiEspacio (así el enlace funciona

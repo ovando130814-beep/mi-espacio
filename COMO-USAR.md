@@ -169,6 +169,49 @@ cd C:\Users\Administrador\MiEspacio\_scripts
 
 ---
 
+# 📅 Calendario de actividades
+
+El calendario te deja **programar actividades en los días que importan** y ver
+**todo** lo de tu espacio (archivos, URLs, manuales, notas, eventos y
+actividades) colocado sobre el día de su fecha.
+
+### Cómo se abre
+
+| Dónde | Cómo |
+|---|---|
+| **PC** | Arriba, en el desplegable **Vista** → **📅 Calendario** |
+| **Celular** | Barra de abajo → **☰ Vista** (repite hasta llegar a **📅 Calendario**) o el mismo desplegable |
+
+### Qué ves
+
+- La rejilla del mes (**lunes primero**) con **hoy** marcado y el día elegido
+  resaltado; **‹ ›** cambian de mes y **Hoy** vuelve al día de hoy.
+- Cada **punto** es un elemento guardado ese día; el **color** indica su
+  categoría (leyenda debajo de la rejilla). Si un día tiene más de 4, sale **+N**.
+- Debajo, el **día elegido**: sus elementos con sus botones normales
+  (✏️ Modificar, 🗑 Eliminar, 📤 Compartir) y el botón **＋ Agregar en este día**.
+- **🔔 Lo que viene**: los próximos 5 elementos con fecha desde hoy en adelante
+  (pulsa uno para saltar a ese día).
+
+> El calendario **muestra todo el catálogo** y no usa los filtros de búsqueda ni
+> los chips; los elementos sin fecha no salen (te avisa el contador del mes).
+
+### Para programar una actividad
+
+1. Abre el calendario y **pulsa el día** que te interesa.
+2. Pulsa **＋ Agregar en este día**: el formulario se abre con la **fecha ya
+   puesta** y la categoría **Actividad**.
+3. Escribe el título (obligatorio), el motivo y el evento, y pulsa **Guardar**.
+4. El punto aparece en el día, la actividad entra en **Lo que viene** y también
+   se ve en la lista normal con el chip **Actividad**.
+
+> Las actividades son registros normales: viven en `registro.csv`, entran en el
+> respaldo 📦, pasan por la papelera y se restauran igual que todo lo demás.
+> El botón Guardar sigue las mismas reglas: si el catálogo tiene errores, no se
+> publica nada.
+
+---
+
 # 📦 Descargar un respaldo (ZIP)
 
 Un botón te baja **todo tu espacio de una vez** en un solo archivo

@@ -15,13 +15,14 @@ if (-not (Test-Path $tplPath)) { throw "No se encuentra $tplPath" }
 $filas = Import-Csv -Path $csvPath -Encoding UTF8 |
          Where-Object { $_.Titulo -and $_.Titulo.Trim() -ne '' }
 
-$permitidas = @('Personal','URL-Trabajo','Manual','Imagen-Sistema','Nota')
+$permitidas = @('Personal','URL-Trabajo','Manual','Imagen-Sistema','Nota','Actividad')
 $mapa = @{
   'personales'='Personal'; 'personal'='Personal'
   'url'='URL-Trabajo'; 'urls'='URL-Trabajo'; 'url-trabajo'='URL-Trabajo'; 'trabajo'='URL-Trabajo'
   'manual'='Manual'; 'manuales'='Manual'
   'imagen'='Imagen-Sistema'; 'imagenes'='Imagen-Sistema'; 'imagen-sistema'='Imagen-Sistema'
   'nota'='Nota'; 'notas'='Nota'; 'evento'='Nota'; 'eventos'='Nota'
+  'actividad'='Actividad'; 'actividades'='Actividad'
 }
 
 $objetos = foreach ($f in $filas) {

@@ -371,6 +371,7 @@
   </div>
 
   <div class="toolbar">
+    <button class="solo-grande" id="btnCal" title="Volver al calendario desde cualquier pantalla">📅 Calendario</button>
     <div class="buscador">
       <input id="q" type="search" placeholder="Buscar por título, motivo, evento o URL…" aria-label="Buscar">
       <span class="lupa">🔍</span>
@@ -421,6 +422,7 @@
 </main>
 
 <nav class="barra" aria-label="Acciones">
+  <button id="mCal" title="Ir al calendario"><span class="ico">📅</span>Calendario</button>
   <button id="mFiltros"><span class="ico">⚙</span>Filtros</button>
   <button class="pri" id="mAdd"><span class="ico">＋</span>Agregar</button>
   <button id="mVista"><span class="ico">☰</span>Vista</button>
@@ -601,7 +603,7 @@ const DIAS_SEMANA = ["domingo","lunes","martes","miércoles","jueves","viernes",
 let activos = new Set(CATS);
 /* versión de esta publicación: si la nube tiene otra más nueva, la web se
    actualiza sola (la escribe Generar-Indice.ps1) */
-const VERSION = "2026-10-02 14:09:52";
+const VERSION = "2026-10-02 14:32:20";
 
 /* la web recuerda la vista con la que te quedaste (por defecto: el calendario) */
 let vista = "calendario";
@@ -1415,6 +1417,18 @@ function dtHoy(){
   calAnho = d.getFullYear(); calMes = d.getMonth();
   render();
 }
+/* un solo botón 📅 en todo el sistema: lleva al calendario desde cualquier
+   pantalla (lista, compacta, línea o el área del día) */
+function irCalendario(){
+  if(vista !== "calendario"){
+    vista = "calendario"; $("vista").value = "calendario";
+    try{ localStorage.setItem("miespacio_vista", vista); }catch(err){}
+    diaTrabajo = false;
+    render();
+    return;
+  }
+  if(diaTrabajo) dtVolver();   /* dentro del día → vuelta a la rejilla */
+}
 
 function renderDiaTrabajo(){
   devolverBarra();
@@ -1445,7 +1459,6 @@ function renderDiaTrabajo(){
     </div>
     <button onclick="dtMover(1)" aria-label="Día siguiente" title="Día siguiente">›</button>
     <button onclick="dtHoy()">Hoy</button>
-    <button onclick="dtVolver()" title="Volver a la rejilla del mes">📅 Calendario</button>
   </div>
   <div id="huecoBarra"></div>
   <div class="accDia">
@@ -2301,6 +2314,9 @@ $("mVista").onclick = () => {
   render();
   toast("Vista: " + $("vista").selectedOptions[0].textContent);
 };
+/* un botón único 📅 Calendario, visible desde cualquier pantalla */
+$("btnCal").onclick = irCalendario;
+$("mCal").onclick = irCalendario;
 $("btnTema").onclick = () => {
   const claro = document.body.classList.toggle("claro");
   localStorage.setItem("miespacio_tema", claro ? "claro" : "oscuro");

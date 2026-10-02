@@ -27,13 +27,15 @@ Ahí ves todo en una sola pantalla, con:
   registro por archivo) y **reemplazar el repetido** en lugar de duplicarlo.
 - **📅 Calendario** (el centro del sistema): ocupa **casi toda el área de
   trabajo** y la rejilla **no muestra ningún botón** (así queda limpio).
-  **Al hacer clic en un día se abre su área de trabajo** y **ahí se activan
-  todos los botones del sistema dentro del propio día**: la barra completa
-  (🔍 buscar, orden, vista, ⚙ filtros, ➕ agregar, conectar, 🗑 papelera,
-  🩺 revisar, 📦 respaldo) **se mete dentro del área**, más las acciones del
-  día (**📎 adjuntar**, **📷 foto**, **🗂 ver en la lista**), la
-  navegación ‹ día › / **Hoy** / **📅 Calendario**, la lista de **lo que viene**
-  y la categoría nueva **Actividad**.
+  **Un único botón 📅 Calendario, siempre visible desde cualquier pantalla**
+  (primer botón de la barra en PC; a la izquierda de la barra de abajo en el
+  celular) te devuelve al calendario en un clic. **Al hacer clic en un día se
+  abre su área de trabajo** y **ahí se activan todos los botones del sistema
+  dentro del propio día**: la barra completa (🔍 buscar, orden, vista, ⚙
+  filtros, ➕ agregar, conectar, 🗑 papelera, 🩺 revisar, 📦 respaldo) **se
+  mete dentro del área**, más las acciones del día (**📎 adjuntar**, **📷
+  foto**, **🗂 ver en la lista**), la navegación ‹ día › / **Hoy**, la lista
+  de **lo que viene** y la categoría nueva **Actividad**.
 - **Siempre al día:** la web **abre en el calendario**, **recuerda tu vista,
   día y búsqueda** en cada equipo y **se actualiza sola** cuando publicas una
   versión nueva.

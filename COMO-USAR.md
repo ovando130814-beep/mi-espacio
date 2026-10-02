@@ -195,8 +195,9 @@ actividades) colocado sobre el día de su fecha.
 
 | Dónde | Cómo |
 |---|---|
-| **PC** | Arriba, en el desplegable **Vista** → **📅 Calendario** |
-| **Celular** | Barra de abajo → **☰ Vista** (repite hasta llegar a **📅 Calendario**) o el mismo desplegable |
+| **El botón 📅 Calendario** | **Siempre visible desde cualquier pantalla**: en PC es el **primer botón de la barra de arriba**; en el celular, el **primero (izquierda) de la barra de abajo**. Un solo clic y estás en el calendario |
+| **PC** | También en el desplegable **Vista** → **📅 Calendario** |
+| **Celular** | También en el desplegable **Vista** |
 
 ### Qué ves (el calendario manda, SIN botones)
 
@@ -228,7 +229,7 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
 |---|---|
 | **‹ día anterior** / **día siguiente ›** | Te mueves día a día sin salir del área |
 | **Hoy** | Abre el área del día de hoy |
-| **📅 Calendario** | Vuelve a la rejilla del mes |
+| **📅 Calendario** | **El botón único del sistema** (primer botón de la barra): vuelve a la rejilla del mes **desde cualquier pantalla** |
 | **🔍 Buscar** (barra del sistema, dentro del área) | Filtra al instante lo de **ese día** (título, motivo, evento, URL) |
 | **Orden** | Ordena los elementos del día (título, fecha, categoría…) |
 | **Vista** | Cambia a Lista / Compacta / Línea / Calendario |
@@ -239,8 +240,8 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
 | **📷 Tomar foto** | La foto queda con la **fecha de ese día** |
 | **🗂 Ver en la lista** | Filtra la lista a ese día: ahí usas chips, edición, compartir… |
 
-- En el **celular**, los botones grandes de la barra (**Filtros, Agregar,
-  Vista, Papelera, Conectar**) aparecen en la **barra de abajo** mientras el
+- En el **celular**, los botones grandes de la barra (**📅 Calendario, Filtros,
+  Agregar, Vista, Papelera, Conectar**) aparecen en la **barra de abajo** mientras el
   área está abierta.
 - Cada elemento del día se muestra con sus botones normales: **Abrir/Compartir,
   ✏️ Modificar y 🗑 Eliminar**, y las **estadísticas de arriba** responden a ese

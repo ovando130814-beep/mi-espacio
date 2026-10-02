@@ -167,7 +167,8 @@
     gap:3px;cursor:pointer;transition:border-color .15s}
   .calDia:hover{border-color:var(--accent)}
   .calDia .n{font-size:13.5px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.2}
-  .calDia.fuera{opacity:.38}
+  .calDia.fuera .n{color:var(--muted)}
+  .calDia.fuera .puntos{opacity:.55}
   .calDia.hoy{border-color:var(--accent)}
   .calDia.hoy .n{color:var(--accent);font-weight:800}
   .calDia.sel{outline:2px solid var(--accent);outline-offset:1px;background:var(--panel2)}
@@ -176,7 +177,7 @@
   .calDia .mas{font-size:10.5px;color:var(--muted);line-height:1}
   .leyenda{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
   .calDiaSel{margin-top:15px;border-top:1px dashed var(--line);padding-top:13px}
-  .calDiaSel h3{margin:0 0 10px;font-size:15.5px;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+  .calDiaSel h2{margin:0 0 10px;font-size:15.5px;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
   .calDiaSel .suma{font-size:12.5px;color:var(--muted);font-weight:600}
   .calProx{margin-top:16px;border-top:1px dashed var(--line);padding-top:13px}
   .calProx h3{margin:0 0 9px;font-size:12.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent)}
@@ -218,7 +219,7 @@
   .dtCab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;
     background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
   .dtTit{flex:1;min-width:210px;display:flex;flex-direction:column;gap:3px}
-  .dtFecha{font-size:19px;font-weight:800}
+  .dtFecha{font-size:19px;font-weight:800;margin:0}
   .dtSuma{font-size:12.5px;color:var(--muted)}
   .dtBuscar{margin-bottom:12px}
   .dtBuscar input{width:100%;padding:12px 14px;min-height:46px;font-size:15px;
@@ -1339,13 +1340,13 @@ function renderCalendario(){
   /* ---- día elegido ---- */
   h += '<div class="calDiaSel">';
   if(!calSel){
-    h += '<h3>📅 Elige un día</h3><div class="meta">Pulsa un día del calendario para ver lo que hay ' +
+    h += '<h2>📅 Elige un día</h2><div class="meta">Pulsa un día del calendario para ver lo que hay ' +
          'ese día y para agregar algo nuevo. <button onclick="calIrHoy()">Ver hoy</button></div>';
   }else{
     const p = calSel.split("-").map(Number);
     const arr = porDia[calSel] || [];
-    h += `<h3>📅 ${DIAS_SEMANA[new Date(p[0], p[1]-1, p[2]).getDay()]} ${fmtFecha(calSel).txt}` +
-         ` <span class="suma">${arr.length ? arr.length + " elemento(s)" : "sin nada"}</span></h3>` +
+    h += `<h2>📅 ${DIAS_SEMANA[new Date(p[0], p[1]-1, p[2]).getDay()]} ${fmtFecha(calSel).txt}` +
+         ` <span class="suma">${arr.length ? arr.length + " elemento(s)" : "sin nada"}</span></h2>` +
          `<div class="accDia">` +
          `<button class="pri" data-act="nuevo">＋ Nuevo en este día</button>` +
          `<button data-act="adjuntar">📎 Adjuntar archivo</button>` +
@@ -1438,7 +1439,7 @@ function renderDiaTrabajo(){
   let h = `<div class="dtCab">
     <button onclick="dtMover(-1)" aria-label="Día anterior" title="Día anterior">‹</button>
     <div class="dtTit">
-      <span class="dtFecha">📅 ${DIAS_SEMANA[nDia.getDay()]} ${esc(fmtFecha(calSel).txt)}</span>
+      <h2 class="dtFecha">📅 ${DIAS_SEMANA[nDia.getDay()]} ${esc(fmtFecha(calSel).txt)}</h2>
       <span class="dtSuma">${arr.length} elemento(s)${hayAct ? " · " + hayAct + " actividad(es)" : ""} · área de trabajo abierta</span>
     </div>
     <button onclick="dtMover(1)" aria-label="Día siguiente" title="Día siguiente">›</button>

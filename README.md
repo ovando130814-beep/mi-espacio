@@ -31,7 +31,7 @@ Ahí ves todo en una sola pantalla, con:
   todos los botones del sistema dentro del propio día**: la barra completa
   (🔍 buscar, orden, vista, ⚙ filtros, ➕ agregar, conectar, 🗑 papelera,
   🩺 revisar, 📦 respaldo) **se mete dentro del área**, más las acciones del
-  día (**＋ Nuevo**, **📎 adjuntar**, **📷 foto**, **🗂 ver en la lista**), la
+  día (**📎 adjuntar**, **📷 foto**, **🗂 ver en la lista**), la
   navegación ‹ día › / **Hoy** / **📅 Calendario**, la lista de **lo que viene**
   y la categoría nueva **Actividad**.
 - **Siempre al día:** la web **abre en el calendario**, **recuerda tu vista,

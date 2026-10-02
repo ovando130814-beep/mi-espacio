@@ -601,7 +601,7 @@ const DIAS_SEMANA = ["domingo","lunes","martes","miércoles","jueves","viernes",
 let activos = new Set(CATS);
 /* versión de esta publicación: si la nube tiene otra más nueva, la web se
    actualiza sola (la escribe Generar-Indice.ps1) */
-const VERSION = "2026-10-02 13:59:00";
+const VERSION = "2026-10-02 14:09:52";
 
 /* la web recuerda la vista con la que te quedaste (por defecto: el calendario) */
 let vista = "calendario";
@@ -1280,13 +1280,6 @@ function calSeguir(iso){              /* tras guardar, que el calendario lo mues
   if(!/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) return;
   calSel = iso; calAnho = +iso.slice(0,4); calMes = +iso.slice(5,7) - 1;
 }
-function agregarEnFecha(iso){
-  agregar();                          /* abre el formulario con sus rutinas */
-  $("f_fecha").value = iso;
-  $("f_cat").value = "Actividad";
-  calSeguir(iso);
-}
-
 /* toda opción elegida en el calendario actúa SOBRE el día elegido */
 function diaAccion(que){
   if(!calSel) return;
@@ -1298,8 +1291,8 @@ function diaAccion(que){
     toast("Viendo solo " + fmtFecha(calSel).txt + " · «⚙ Filtros → Limpiar filtros» vuelve a todo");
     return;
   }
-  if(que === "papelera"){ abrirPapelera(); return; }
-  agregar();                          /* fecha = día elegido, categoría Actividad */
+  agregar();            /* fecha = día elegido, categoría Actividad */
+                        /* (📎 Adjuntar y 📷 Foto arrancan de ese mismo formulario) */
   if(que === "adjuntar") $("fileSubir").click();
   if(que === "foto") $("fileCamara").click();
 }
@@ -1405,9 +1398,9 @@ function pintarSuperiorDia(porDia, conFecha, enMes, sinFecha){
 }
 
 /* =================================================== ÁREA DE TRABAJO DEL DÍA
-   Al hacer clic en un día se abre SU área a pantalla completa, con todos los
-   botones para trabajar (nuevo, adjuntar, foto, lista, papelera, buscar)
-   activados sobre esa fecha. */
+   Al hacer clic en un día se abre SU área a pantalla completa: dentro entra la
+   barra del sistema entera (buscar, orden, +Agregar, filtros, papelera…) y
+   quedan activas las acciones del día (adjuntar, foto, lista) sobre esa fecha. */
 function dtMover(delta){
   const p = calSel.split("-").map(Number);
   const d = new Date(p[0], p[1] - 1, p[2] + delta);
@@ -1456,7 +1449,6 @@ function renderDiaTrabajo(){
   </div>
   <div id="huecoBarra"></div>
   <div class="accDia">
-    <button class="pri" data-act="nuevo">＋ Nuevo</button>
     <button data-act="adjuntar">📎 Adjuntar archivo</button>
     <button data-act="foto">📷 Tomar foto</button>
     <button data-act="lista">🗂 Ver en la lista</button>

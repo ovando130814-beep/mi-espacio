@@ -235,7 +235,6 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
 | **⚙ Filtros** | Rango de fechas y gráficas, **dentro del área** |
 | **➕ Agregar** | Abre el formulario con la **fecha ya puesta** y la categoría **Actividad** |
 | **Conectar** / **🗑 Papelera** / **🩺 Revisar** / **📦 Respaldo** | Las 4 opciones del sistema, activas sobre ese día |
-| **＋ Nuevo** | Igual que Agregar: fecha del día lista |
 | **📎 Adjuntar archivo** | Sube y cataloga con la **fecha de ese día** |
 | **📷 Tomar foto** | La foto queda con la **fecha de ese día** |
 | **🗂 Ver en la lista** | Filtra la lista a ese día: ahí usas chips, edición, compartir… |
@@ -255,7 +254,7 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
 
 1. Abre el calendario y **haz clic en el día** que te interesa: se abre **su
    área de trabajo**.
-2. Pulsa **＋ Nuevo** (o 📎 Adjuntar / 📷 Tomar foto, que también quedan con la
+2. Pulsa **➕ Agregar** (o 📎 Adjuntar / 📷 Tomar foto, que también quedan con la
    fecha de ese día).
 3. Escribe el título (obligatorio), el motivo y el evento, y pulsa **Guardar**.
 4. El punto aparece en el día, la actividad entra en **Lo que viene** y también

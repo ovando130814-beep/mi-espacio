@@ -27,10 +27,11 @@ Ahí ves todo en una sola pantalla, con:
   registro por archivo) y **reemplazar el repetido** en lugar de duplicarlo.
 - **📅 Calendario** (el centro del sistema): ocupa **casi toda el área de
   trabajo**; ves **todo** lo guardado colocado sobre el día de su fecha (cada
-  punto con el color de su categoría). Al elegir un día **se activan las
-  estadísticas de ese día** y todas las opciones: **＋ Nuevo**, **📎 Adjuntar
-  archivo**, **📷 Tomar foto** y **🗂 ver ese día en la lista**. Hay lista de
-  **lo que viene** y la categoría nueva **Actividad**.
+  punto con el color de su categoría). **Al hacer clic en un día se abre su
+  área de trabajo** con todos los botones activos sobre esa fecha: **＋ Nuevo**,
+  **📎 Adjuntar archivo**, **📷 Tomar foto**, **🗂 ver en la lista**,
+  **🗑 Papelera** y **🔍 buscar en ese día**. Hay navegación ‹ día ›, **Hoy**,
+  lista de **lo que viene** y la categoría nueva **Actividad**.
 - **📦 Respaldo en 1 clic**: un botón descarga **todo** tu espacio (catálogo,
   papelera y carpetas) en un solo archivo `.zip`, con un `LEEME` dentro con los
   pasos para restaurarlo si algún día hace falta.

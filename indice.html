@@ -214,6 +214,25 @@
   .accDia button{flex:1 1 auto;min-width:150px}
   @media(max-width:640px){ .accDia button{min-width:0;flex:1 1 45%} }
 
+  /* ---------- área de trabajo del día ---------- */
+  .dtCab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .dtTit{flex:1;min-width:210px;display:flex;flex-direction:column;gap:3px}
+  .dtFecha{font-size:19px;font-weight:800}
+  .dtSuma{font-size:12.5px;color:var(--muted)}
+  .dtBuscar{margin-bottom:12px}
+  .dtBuscar input{width:100%;padding:12px 14px;min-height:46px;font-size:15px;
+    border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--txt)}
+  .dtBuscar input:focus{border-color:var(--accent);outline:none}
+  .dtVacio{border:1px dashed var(--line);border-radius:14px;padding:26px 18px;text-align:center;
+    color:var(--muted);font-size:15px;background:var(--panel);line-height:1.55}
+  .dtVacio .accDia{margin-top:16px}
+  @media(max-width:640px){
+    .dtFecha{font-size:16.5px}
+    .dtCab{padding:10px 11px}
+    .dtCab button{min-height:44px}
+  }
+
   /* ------------------------------------------------------------ barra móvil */
   .barra{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
     background:var(--panel);border-top:1px solid var(--line);
@@ -582,6 +601,7 @@ const isoLocal = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,
 let calHoy = isoLocal(new Date());
 let calSel = calHoy;
 let calAnho = +calHoy.slice(0,4), calMes = +calHoy.slice(5,7) - 1;
+let diaTrabajo = false;             /* true = el día elegido abrió su área de trabajo */
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1230,7 +1250,10 @@ function calElegir(iso){
   calSel = iso;
   const y = +iso.slice(0,4), m = +iso.slice(5,7) - 1;
   if(y !== calAnho || m !== calMes){ calAnho = y; calMes = m; }
+  diaTrabajo = true;                 /* el clic abre el área de trabajo del día */
   render();
+  const l = $("list");
+  if(l && l.scrollIntoView) l.scrollIntoView({behavior:"smooth", block:"start"});
 }
 function calSeguir(iso){              /* tras guardar, que el calendario lo muestre */
   if(!/^\d{4}-\d{2}-\d{2}$/.test(iso || "")) return;
@@ -1254,6 +1277,7 @@ function diaAccion(que){
     toast("Viendo solo " + fmtFecha(calSel).txt + " · «⚙ Filtros → Limpiar filtros» vuelve a todo");
     return;
   }
+  if(que === "papelera"){ abrirPapelera(); return; }
   agregar();                          /* fecha = día elegido, categoría Actividad */
   if(que === "adjuntar") $("fileSubir").click();
   if(que === "foto") $("fileCamara").click();
@@ -1267,21 +1291,7 @@ function renderCalendario(){
   const enMes = conFecha.filter(o => o.f.slice(0,4) === String(calAnho) &&
                                       +o.f.slice(5,7) === calMes + 1).length;
   const sinFecha = DATOS.length - conFecha.length;
-
-  /* ---- el dashboard se activa con el día elegido ---- */
-  const delDia = calSel ? (porDia[calSel] || []) : [];
-  const activDia = delDia.filter(o => o.c === "Actividad").length;
-  const vienen = conFecha.filter(o => o.f >= calHoy).length;
-  $("stats").innerHTML =
-    `<div class="stat"><b>${delDia.length}</b>en ${calSel ? esc(fmtFecha(calSel).txt) : "el día elegido"}</div>` +
-    `<div class="stat"><b>${activDia}</b>actividades del día</div>` +
-    `<div class="stat"><b>${enMes}</b>en ${MESES[calMes]} de ${calAnho}</div>` +
-    `<div class="stat"><b>${vienen}</b>lo que viene</div>` +
-    (sinFecha ? `<div class="stat"><b>${sinFecha}</b>sin fecha</div>` : "");
-  $("cont").innerHTML = calSel
-    ? `📅 <b>${DIAS_SEMANA[new Date(+calSel.slice(0,4), (+calSel.slice(5,7))-1, +calSel.slice(8,10)).getDay()]} ` +
-      `${esc(fmtFecha(calSel).txt)}</b> · ${delDia.length} ese día · ${DATOS.length} en el catálogo (el calendario no usa filtros)`
-    : `📅 Elige un día del calendario · ${DATOS.length} elementos en el catálogo`;
+  pintarSuperiorDia(porDia, conFecha, enMes, sinFecha);   /* el dashboard del día */
 
   /* lunes en la primera columna */
   const offset = (new Date(calAnho, calMes, 1).getDay() + 6) % 7;
@@ -1361,13 +1371,115 @@ function renderCalendario(){
   });
 }
 
+/* estadísticas y resumen del día elegido (rejilla y área de trabajo) */
+function pintarSuperiorDia(porDia, conFecha, enMes, sinFecha){
+  const delDia = calSel ? (porDia[calSel] || []) : [];
+  const activDia = delDia.filter(o => o.c === "Actividad").length;
+  const vienen = conFecha.filter(o => o.f >= calHoy).length;
+  $("stats").innerHTML =
+    `<div class="stat"><b>${delDia.length}</b>en ${calSel ? esc(fmtFecha(calSel).txt) : "el día elegido"}</div>` +
+    `<div class="stat"><b>${activDia}</b>actividades del día</div>` +
+    `<div class="stat"><b>${enMes}</b>en ${MESES[calMes]} de ${calAnho}</div>` +
+    `<div class="stat"><b>${vienen}</b>lo que viene</div>` +
+    (sinFecha ? `<div class="stat"><b>${sinFecha}</b>sin fecha</div>` : "");
+  $("cont").innerHTML = calSel
+    ? `📅 <b>${DIAS_SEMANA[new Date(+calSel.slice(0,4), (+calSel.slice(5,7))-1, +calSel.slice(8,10)).getDay()]} ` +
+      `${esc(fmtFecha(calSel).txt)}</b> · ${delDia.length} ese día · ${DATOS.length} en el catálogo (el calendario no usa filtros)`
+    : `📅 Elige un día del calendario · ${DATOS.length} elementos en el catálogo`;
+}
+
+/* =================================================== ÁREA DE TRABAJO DEL DÍA
+   Al hacer clic en un día se abre SU área a pantalla completa, con todos los
+   botones para trabajar (nuevo, adjuntar, foto, lista, papelera, buscar)
+   activados sobre esa fecha. */
+function dtMover(delta){
+  const p = calSel.split("-").map(Number);
+  const d = new Date(p[0], p[1] - 1, p[2] + delta);
+  calSel = isoLocal(d);
+  calAnho = d.getFullYear(); calMes = d.getMonth();
+  render();
+}
+function dtVolver(){ diaTrabajo = false; render(); }
+function dtHoy(){
+  calSel = calHoy;
+  const d = new Date();
+  calAnho = d.getFullYear(); calMes = d.getMonth();
+  render();
+}
+
+function renderDiaTrabajo(){
+  const list = $("list");
+  const conFecha = DATOS.filter(o => /^\d{4}-\d{2}-\d{2}$/.test(o.f || ""));
+  const porDia = {};
+  conFecha.forEach(o => { (porDia[o.f] = porDia[o.f] || []).push(o); });
+  const enMes = conFecha.filter(o => o.f.slice(0,4) === String(calAnho) &&
+                                      +o.f.slice(5,7) === calMes + 1).length;
+  const sinFecha = DATOS.length - conFecha.length;
+  pintarSuperiorDia(porDia, conFecha, enMes, sinFecha);
+
+  const arr = porDia[calSel] || [];
+  const q = (($("qDia") && $("qDia").value) || "").trim().toLowerCase();
+  const muestran = q ? arr.filter(o => (o.t + " " + o.m + " " + o.e + " " + o.u).toLowerCase().indexOf(q) > -1)
+                     : arr;
+  const p = calSel.split("-").map(Number);
+  const nDia = new Date(p[0], p[1] - 1, p[2]);
+  const hayAct = arr.filter(o => o.c === "Actividad").length;
+
+  let h = `<div class="dtCab">
+    <button onclick="dtMover(-1)" aria-label="Día anterior" title="Día anterior">‹</button>
+    <div class="dtTit">
+      <span class="dtFecha">📅 ${DIAS_SEMANA[nDia.getDay()]} ${esc(fmtFecha(calSel).txt)}</span>
+      <span class="dtSuma">${arr.length} elemento(s)${hayAct ? " · " + hayAct + " actividad(es)" : ""} · área de trabajo abierta</span>
+    </div>
+    <button onclick="dtMover(1)" aria-label="Día siguiente" title="Día siguiente">›</button>
+    <button onclick="dtHoy()">Hoy</button>
+    <button onclick="dtVolver()" title="Volver a la rejilla del mes">📅 Calendario</button>
+  </div>
+  <div class="accDia">
+    <button class="pri" data-act="nuevo">＋ Nuevo</button>
+    <button data-act="adjuntar">📎 Adjuntar archivo</button>
+    <button data-act="foto">📷 Tomar foto</button>
+    <button data-act="lista">🗂 Ver en la lista</button>
+    <button data-act="papelera">🗑 Papelera</button>
+  </div>
+  <div class="dtBuscar">
+    <input id="qDia" type="search" value="${esc(q)}"
+           placeholder="🔍 Buscar en este día (título, motivo, evento, URL)…"
+           aria-label="Buscar en este día">
+  </div>`;
+
+  h += muestran.length
+    ? muestran.map(o => tarjetaHTML(DATOS.indexOf(o), o)).join("")
+    : `<div class="dtVacio">${q
+        ? `Ningún resultado para «<b>${esc(q)}</b>» entre los ${arr.length} elemento(s) de este día.`
+        : `No hay nada guardado este día todavía.<br>Usa los botones de arriba: ` +
+          `<b>todo queda con la fecha de ${esc(fmtFecha(calSel).txt)}</b>.`}</div>`;
+
+  list.innerHTML = h;
+  list.querySelectorAll("[data-act]").forEach(el => {
+    el.onclick = () => diaAccion(el.dataset.act);
+  });
+  const qi = $("qDia");
+  if(qi) qi.oninput = () => {
+    const pos = qi.selectionStart;
+    renderDiaTrabajo();
+    const n = $("qDia");
+    if(n){ n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} }
+  };
+}
+
 function render(){
   const filas = filtrados();
   const list = $("list");
   const orden = $("orden").value;
 
   document.body.classList.toggle("vcal", vista === "calendario");
-  if(vista === "calendario"){ renderCalendario(); return; }
+  if(vista === "calendario"){
+    if(diaTrabajo && calSel) renderDiaTrabajo();
+    else renderCalendario();
+    return;
+  }
+  diaTrabajo = false;               /* solo el calendario tiene área de trabajo */
 
   renderStats();               /* de vuelta: panel general del sistema */
   $("cont").innerHTML = filas.length === DATOS.length

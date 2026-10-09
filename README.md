@@ -45,6 +45,13 @@ Ahí ves todo en una sola pantalla, con:
 - **📦 Respaldo en 1 clic**: un botón descarga **todo** tu espacio (catálogo,
   papelera y carpetas) en un solo archivo `.zip`, con un `LEEME` dentro con los
   pasos para restaurarlo si algún día hace falta.
+- **🔔 Recordatorios**: banner y notificación **el día antes** (y el mismo día)
+  de lo programado en el calendario.
+- **📱 App instalable sin internet**: se instala con **icono propio** y
+  funciona con la **última copia guardada** aunque no haya señal.
+- **📤 Exportar a Excel**: baja en un clic un `.csv` con **exactamente lo que
+  estás viendo** (un mes, una materia, un día).
+- **🔎 Búsqueda amable**: perdona acentos, mayúsculas y errores de tecleo.
 - Diseño **responsivo**: en PC con barra lateral arriba, en el celular con
   barra de botones abajo.
 

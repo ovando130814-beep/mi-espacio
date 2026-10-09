@@ -128,6 +128,21 @@
   .leyMes{background:var(--fueraBg);color:var(--muted);border:1px solid var(--line)}
   .leyDato{background:var(--panel);color:var(--txt);border:1px solid var(--line);
     box-shadow:inset 0 0 0 2px var(--accent)}
+
+  /* ---------- avisos / recordatorios ---------- */
+  .avisos{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:12px;padding:11px 13px;margin:0 0 13px}
+  .avisTit{font-size:13.5px;margin-bottom:5px;color:var(--txt)}
+  .avisFila{display:flex;gap:9px;align-items:flex-start;justify-content:space-between;
+    font-size:13.5px;padding:6px 0;border-top:1px dashed var(--line)}
+  .avisFila:first-of-type{border-top:none}
+  .avisMotivo{color:var(--muted);display:block;font-size:12.5px}
+  .avisOk{flex:0 0 auto;padding:3px 11px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--txt);cursor:pointer;font-weight:700}
+  .avisOk:hover{border-color:var(--accent);color:var(--accent)}
+  .avisTodo{margin-top:8px;width:100%;padding:7px;border-radius:9px;border:1px dashed var(--line);
+    background:transparent;color:var(--muted);cursor:pointer;font-size:12.5px}
+  .avisTodo:hover{color:var(--txt);border-color:var(--line)}
   .meta{font-size:13px;color:var(--muted);margin-top:5px;word-break:break-word}
   .meta .k{color:var(--dim);font-weight:700}
   .ev{display:inline-block;background:var(--panel2);border:1px dashed var(--line);
@@ -418,10 +433,13 @@
     </div>
     <button id="btnRevisarM" style="width:100%;margin-top:12px">🩺 Revisar datos, archivos y enlaces del espacio</button>
     <button id="btnRespaldoM" style="width:100%;margin-top:8px">📦 Descargar todo el espacio en un archivo .zip (respaldo)</button>
+    <button id="btnAvisos" style="width:100%;margin-top:8px">🔔 Avisarme el día antes de cada actividad (notificaciones)</button>
+    <button id="btnExportar" style="width:100%;margin-top:8px">📤 Exportar a Excel (.csv) lo que estás viendo</button>
   </div>
 </header>
 
 <main>
+  <div class="avisos oculto" id="avisos" role="status"></div>
   <div class="stats" id="stats"></div>
   <div class="cont" id="cont"></div>
   <div id="list"></div>
@@ -1195,14 +1213,41 @@ function ordenarArr(r, orden){
   return r;
 }
 
+/* ===== BÚSQUEDA AMABLE: perdona acentos y errores de tecleo ===== */
+const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+function unError(a, b){            /* true si las dos cadenas difieren a lo sumo en1 carácter */
+  if(a === b) return true;
+  const la = a.length, lb = b.length;
+  if(Math.abs(la - lb) > 1) return false;
+  let i = 0, j = 0, dif = 0;
+  while(i < la && j < lb){
+    if(a[i] === b[j]){ i++; j++; continue; }
+    if(++dif > 1) return false;
+    if(la > lb) i++; else if(la < lb) j++; else { i++; j++; }
+  }
+  return dif + (la - i) + (lb - j) <= 1;
+}
+const textoDel = o => norm([o.t,o.m,o.e,o.u,o.c].join(" "));
+function coincide(texto, q){
+  const qn = norm(q).trim();
+  if(!qn) return true;
+  if(texto.indexOf(qn) > -1) return true;
+  return qn.split(/\s+/).every(t => {
+    if(texto.indexOf(t) > -1) return true;
+    if(t.length < 4) return false;           /* palabras cortas: tal cual */
+    const palabras = texto.split(/[^a-z0-9]+/);
+    return palabras.some(p => p.length >= 3 && unError(p, t));
+  });
+}
+
 function filtrados(){
-  const q = $("q").value.trim().toLowerCase();
+  const q = $("q").value.trim();
   const orden = $("orden").value;
   const desde = $("desde").value, hasta = $("hasta").value;
   let r = DATOS.filter(x => activos.has(x.c));
   if(desde) r = r.filter(x => (x.f||"") >= desde);
   if(hasta) r = r.filter(x => (x.f||"") <= hasta);
-  if(q) r = r.filter(x => [x.t,x.m,x.e,x.u,x.c].join(" ").toLowerCase().includes(q));
+  if(q) r = r.filter(x => coincide(textoDel(x), q));
   return ordenarArr(r, orden);
 }
 
@@ -1461,10 +1506,9 @@ function renderDiaTrabajo(){
   pintarSuperiorDia(porDia, conFecha, enMes, sinFecha);
 
   const arr = porDia[calSel] || [];
-  const q = ($("q").value || "").trim().toLowerCase();
+  const q = ($("q").value || "").trim();
   let muestran = arr;
-  if(q) muestran = muestran.filter(o =>
-    [o.t, o.m, o.e, o.u, o.c].join(" ").toLowerCase().indexOf(q) > -1);
+  if(q) muestran = muestran.filter(o => coincide(textoDel(o), q));
   muestran = ordenarArr(muestran.slice(), $("orden").value);   /* el orden también manda en el día */
   const p = calSel.split("-").map(Number);
   const nDia = new Date(p[0], p[1] - 1, p[2]);
@@ -2402,6 +2446,88 @@ async function vigilarVersion(){
 window.addEventListener("focus", vigilarVersion);
 document.addEventListener("visibilitychange", () => { if(!document.hidden) vigilarVersion(); });
 
+/* ================================== RECORDATORIOS (aviso el día antes) */
+function avisosVistos(){ try{ return JSON.parse(localStorage.getItem("miespacio_avisos")||"[]"); }catch(e){ return []; } }
+function avisosYaAvisados(){ try{ return JSON.parse(localStorage.getItem("miespacio_avisosN")||"[]"); }catch(e){ return []; } }
+function apuntar(arr, clave, nro){
+  try{
+    const v = (nro ? avisosYaAvisados() : avisosVistos());
+    if(v.indexOf(clave) < 0){ v.push(clave); localStorage.setItem(nro ? "miespacio_avisosN" : "miespacio_avisos",
+      JSON.stringify(v.slice(-200))); }
+  }catch(e){}
+}
+function revisarRecordatorios(){
+  const caja = $("avisos");
+  if(!caja || !DATOS.length) return;
+  const hoy = isoLocal(new Date());
+  const man = isoLocal(new Date(Date.now() + 864e5));
+  const vistos = avisosVistos();
+  const lista = DATOS.filter(o => /^\d{4}-\d{2}-\d{2}$/.test(o.f||"") && (o.f === hoy || o.f === man))
+                     .sort((a,b) => a.f.localeCompare(b.f) || a.t.localeCompare(b.t));
+  const pend = lista.filter(x => vistos.indexOf(x.f + "|" + x.t) < 0);
+  if(!pend.length){ caja.classList.add("oculto"); caja.innerHTML = ""; return; }
+  caja.classList.remove("oculto");
+  caja.innerHTML = "<div class='avisTit'>🔔 <b>Recordatorios</b> · lo programado para hoy y mañana</div>" +
+    pend.map((x,i) => "<div class='avisFila'><span><b>" + (x.f === hoy ? "Hoy" : "Mañana") +
+      "</b> · " + esc(fmtFecha(x.f).txt) + " — <b>" + esc(x.t) + "</b>" +
+      (x.m ? "<span class='avisMotivo'>" + esc(String(x.m).slice(0,110)) + "</span>" : "") +
+      "</span><button class='avisOk' data-i='" + i + "' title='Ya lo vi'>✓</button></div>").join("") +
+    "<button class='avisTodo' id='avisTodo'>✓ Entendido: no mostrar estos otra vez</button>";
+  caja.querySelectorAll(".avisOk").forEach(b => b.onclick = () => {
+    const x = pend[+b.dataset.i]; apuntar(null, x.f + "|" + x.t, 0); revisarRecordatorios();
+  });
+  const todo = $("avisTodo");
+  if(todo) todo.onclick = () => { pend.forEach(x => apuntar(null, x.f + "|" + x.t, 0)); revisarRecordatorios(); };
+  /* notificación del sistema, solo una vez por recordatorio */
+  if(typeof Notification !== "undefined" && Notification.permission === "granted"){
+    const ya = avisosYaAvisados();
+    pend.forEach(x => {
+      const clave = x.f + "|" + x.t;
+      if(ya.indexOf(clave) > -1) return;
+      try{ new Notification((x.f === hoy ? "Hoy · " : "Mañana · ") + fmtFecha(x.f).txt, {body: x.t, tag: clave}); }catch(e){}
+      apuntar(null, clave, 1);
+    });
+  }
+}
+window.addEventListener("focus", revisarRecordatorios);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) revisarRecordatorios(); });
+async function pedirAvisos(){
+  if(typeof Notification === "undefined"){
+    toast("Este navegador no admite notificaciones, pero el banner de arriba sí avisa al abrir");
+    revisarRecordatorios(); return;
+  }
+  try{
+    const p = await Notification.requestPermission();
+    if(p === "granted"){ toast("🔔 Listo: te avisaré el día antes (y el mismo día) de lo programado"); revisarRecordatorios(); }
+    else toast("No se dio permiso: el banner de arriba seguirá avisando cuando abras tu espacio", true);
+  }catch(e){ toast("No se pudo pedir permiso de avisos", true); }
+}
+
+/* ================================== EXPORTAR A EXCEL (lo que estás viendo) */
+function exportarExcel(){
+  let filas, nota;
+  if(vista === "calendario" && diaTrabajo && calSel){
+    const q = ($("q").value || "").trim();
+    filas = DATOS.filter(o => o.f === calSel);
+    if(q) filas = filas.filter(o => coincide(textoDel(o), q));
+    filas = ordenarArr(filas.slice(), $("orden").value);
+    nota = "de " + fmtFecha(calSel).txt;
+  } else {
+    filas = filtrados();
+    nota = "con los filtros actuales";
+  }
+  if(!filas.length){ toast("Nada que exportar " + nota, true); return; }
+  const blob = new Blob(["\uFEFF" + aCSV(filas.map(aFila))], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "MiEspacio-" + new Date().toISOString().slice(0,10) + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast("Descargado: " + filas.length + " elemento(s) " + nota + " · ábrelo con Excel");
+}
+$("btnExportar").onclick = exportarExcel;
+$("btnAvisos").onclick = pedirAvisos;
+
 /* =========================================================== INICIO */
 (async function inicio(){
   if(localStorage.getItem("miespacio_tema") === "claro"){
@@ -2428,6 +2554,9 @@ document.addEventListener("visibilitychange", () => { if(!document.hidden) vigil
   $("sub").textContent = `${DATOS.length} elementos · actualizado ${ult||"—"} · agregar, modificar y restaurar desde aquí`;
   $("foot").textContent = "Espacio personal · cambios en registro.csv de GitHub · papelera e historial desde la barra · atajos: / buscar · N nueva · Esc cerrar";
   renderTodo();
+  revisarRecordatorios();
+  /* app instalable + sin conexión */
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
 })();
 </script>
 </body>

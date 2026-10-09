@@ -307,6 +307,54 @@ Un botón te baja **todo tu espacio de una vez** en un solo archivo
 
 ---
 
+# 🔔 Avisos, app instalada y exportar
+
+## 🔔 Recordatorios: te aviso el DÍA ANTES de cada actividad
+
+1. Abre **⚙ Filtros** y pulsa **🔔 Avisarme el día antes de cada actividad**
+   y acepta el permiso del navegador.
+2. Cada vez que abras tu espacio (o con la app abierta), un **banner 🔔** arriba
+   de todo te muestra lo de **Hoy** y lo de **Mañana** con su motivo.
+3. Cuando lo revises, marca **✓** en esa fila (o **✓ Entendido**) y ese
+   recordatorio no vuelve a aparecer.
+4. En el celular, con la **app instalada**, además sale la
+   **notificación del sistema** — una sola vez por recordatorio.
+
+> Los avisos salen al abrir o actualizar la app y mientras esté abierta: no
+> dependen de ningún servicio de pago ni se apagan si cambias de equipo.
+
+## 📱 Instalar la app en el celular (funciona sin internet)
+
+| celular | cómo |
+|---|---|
+| **Android (Chrome)** | Abre la web → menú **⋮** → **Instalar aplicación** / **Agregar a pantalla de inicio** |
+| **iPhone (Safari)** | Abre la web → botón **Compartir** → **Agregar a pantalla de inicio** |
+
+- Queda con **icono propio** de "Mi Espacio" y se abre a pantalla completa,
+  como cualquier aplicación.
+- **Sin internet funciona**: muestra la última copia que ya viste (los guardados
+  esperan a que vuelva la señal; si intentas guardar sin conexión, te avisa y
+  **no se pierde nada**).
+
+## 📤 Exportar a Excel
+
+1. Abre **⚙ Filtros** y pulsa **📤 Exportar a Excel (.csv) lo que estás viendo**.
+2. Se descarga `MiEspacio-AAAA-MM-DD.csv` con **exactamente lo que estás
+   viendo**: con los filtros de fecha, categoría o búsqueda que tengas puestos;
+   y desde el área de un día, **ese día**.
+3. Ábrelo con **Excel** (o Google Sheets): trae Fecha, Categoría, Título, Tipo,
+   Ubicación, URL, Motivo y Evento. Para "un mes": en Filtros pon **Desde** y
+   **Hasta** de ese mes y exporta; para "una materia": filtra y exporta.
+
+## 🔎 Búsqueda que perdona errores
+
+La búsqueda **ignora acentos, mayúsculas y errores de tecleo**: si escribes
+`incapacidat` o `ano nuevo` (sin ñ), igual encuentra "incapacidad" y
+"Año Nuevo". Si escribes **varias palabras**, todas tienen que aparecer
+(en cualquier orden).
+
+---
+
 # Subir todo a la nube (GitHub)
 
 Tu espacio se sube a GitHub y queda publicado para verlo **desde el celular

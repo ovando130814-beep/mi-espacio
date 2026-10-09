@@ -27,7 +27,10 @@ Ahí ves todo en una sola pantalla, con:
   registro por archivo) y **reemplazar el repetido** en lugar de duplicarlo.
 - **📅 Calendario** (el centro del sistema): ocupa **casi toda el área de
   trabajo** y la rejilla **no muestra ningún botón** (así queda limpio).
-  **Un único botón 📅 Calendario, siempre visible desde cualquier pantalla**
+  **Cada mes se distingue por su fondo** (los días de otros meses salen
+  apagados) y **los días con contenido llevan un recuadro con el color de su
+  categoría**. **Un único botón 📅 Calendario, siempre visible desde cualquier
+  pantalla**
   (primer botón de la barra en PC; a la izquierda de la barra de abajo en el
   celular) te devuelve al calendario en un clic. **Al hacer clic en un día se
   abre su área de trabajo** y **ahí se activan todos los botones del sistema

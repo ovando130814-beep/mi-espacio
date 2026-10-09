@@ -14,6 +14,7 @@
 <style>
   :root{
     --bg:#0f141a; --panel:#161d26; --panel2:#1c2531; --line:#2a3644;
+    --fueraBg:#141a23;
     --txt:#e6edf3; --muted:#93a5b8; --dim:#93a5b8;
     --accent:#4da3ff; --ok:#3fb950; --mal:#ff7b72; --aviso-bg:#3a2f14;
     --c1:#4da3ff; --c2:#f0a742; --c3:#b083f0; --c4:#3fb950; --c5:#ff7b72; --c6:#22c1dc;
@@ -22,6 +23,7 @@
   }
   body.claro{
     --bg:#f2f5f9; --panel:#ffffff; --panel2:#eef2f7; --line:#d8e0ea;
+    --fueraBg:#e3e9f1;
     --txt:#15202c; --muted:#57687a; --dim:#57687a;
     --accent:#0b63d6; --ok:#137a34; --mal:#c9372c;
     --aviso-bg:#fff4d6; --sombra:0 6px 24px rgba(20,40,70,.12);
@@ -123,6 +125,9 @@
   body:not(.claro) .b-Imagen-Sistema{color:#55d670}
   body:not(.claro) .b-Nota{color:#ff948c}
   body:not(.claro) .b-Actividad{color:#5ee2f5}
+  .leyMes{background:var(--fueraBg);color:var(--muted);border:1px solid var(--line)}
+  .leyDato{background:var(--panel);color:var(--txt);border:1px solid var(--line);
+    box-shadow:inset 0 0 0 2px var(--accent)}
   .meta{font-size:13px;color:var(--muted);margin-top:5px;word-break:break-word}
   .meta .k{color:var(--dim);font-weight:700}
   .ev{display:inline-block;background:var(--panel2);border:1px dashed var(--line);
@@ -169,6 +174,8 @@
   .calDia .n{font-size:13.5px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.2}
   .calDia.fuera .n{color:var(--muted)}
   .calDia.fuera .puntos{opacity:.55}
+  .calDia.fuera{background:var(--fueraBg)}        /* días de otro mes: color aparte */
+  .calDia.conDato{box-shadow:inset 0 0 0 2px var(--dCon,var(--accent))}  /* día con contenido: su color */
   .calDia.hoy{border-color:var(--accent)}
   .calDia.hoy .n{color:var(--accent);font-weight:800}
   .calDia.sel{outline:2px solid var(--accent);outline-offset:1px;background:var(--panel2)}
@@ -1333,13 +1340,25 @@ function renderCalendario(){
     const arr = porDia[iso] || [];
     const puntos = arr.slice(0, 4).map(o => '<i style="background:' + colorDe(o.c) + '"></i>').join("");
     const mas = arr.length > 4 ? '<span class="mas">+' + (arr.length - 4) + '</span>' : "";
+    /* día con contenido: su recuadro lleva el color de su categoría
+       (si tiene varias, la que más se repite ese día) */
+    let estilo = "";
+    if(arr.length){
+      const cuenta = {};
+      arr.forEach(o => { cuenta[o.c] = (cuenta[o.c] || 0) + 1; });
+      let mejor = arr[0].c, max = 0;
+      CATS.forEach(cc => { const n = cuenta[cc] || 0; if(n > max){ max = n; mejor = cc; } });
+      estilo = ` style="--dCon:${colorDe(mejor)}"`;
+    }
     const cls = "calDia" + (c.fuera ? " fuera" : "") + (iso === calHoy ? " hoy" : "") +
-                (iso === calSel ? " sel" : "");
-    h += `<div class="${cls}" role="button" tabindex="0" data-iso="${iso}" title="${
+                (iso === calSel ? " sel" : "") + (arr.length ? " conDato" : "");
+    h += `<div class="${cls}"${estilo} role="button" tabindex="0" data-iso="${iso}" title="${
             arr.length ? arr.length + " elemento(s): pulsa para ver" : "Pulsa para ver o agregar"}">` +
           `<span class="n">${c.d.getDate()}</span><span class="puntos">${puntos}</span>${mas}</div>`;
   });
   h += '</div><div class="leyenda">' +
+       '<span class="badge leyMes">fondo apagado = otro mes</span>' +
+       '<span class="badge leyDato">recuadro = día con contenido</span>' +
        CATS.map(c => `<span class="badge b-${c}">${c}</span>`).join("") + '</div>';
 
   /* ---- día elegido: la rejilla NO enseña botones ----

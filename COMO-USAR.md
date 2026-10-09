@@ -210,6 +210,13 @@ actividades) colocado sobre el día de su fecha.
     la última o primera fila (son días del mes siguiente/anterior); se abre su
     área y, al pulsar **📅 Calendario**, verás ese mes. Dentro del área también
     te mueves con **‹ ›** día a día y **Hoy**.
+- **Cada mes tiene su color**: los días de otros meses (primera y última fila)
+  salen con el **fondo apagado** y los números tenues, así se ve enseguida
+  dónde empieza y termina el mes.
+- **Los días con contenido se pintan de un color**: si ese día hay algo
+  guardado, la celda lleva un **recuadro del color de su categoría** (el mismo
+  color de sus puntos); los días vacíos quedan solo con el fondo del mes.
+  La **leyenda** bajo la rejilla lo explica.
 - Cada **punto** es un elemento guardado ese día; el **color** indica su
   categoría (leyenda debajo de la rejilla). Si un día tiene más de 4, sale **+N**.
 - Las **estadísticas de arriba se activan con el día elegido**: cuántos

@@ -61,10 +61,18 @@ pública lo muestra). Si usas otro equipo, lo conectas ahí también. Para quita
 
 | Botón | Qué hace |
 |---|---|
-| **+ Agregar** | Formulario con fecha, categoría, motivo y evento → sube a GitHub |
+| **+ Agregar** | Formulario: eliges el **tipo** (enlace, nota, actividad…), fecha, motivo y evento → sube a GitHub |
 | **Modificar** | Abre el elemento con todos sus datos → guarda los cambios |
 | **Eliminar** | **Lo mueve a la papelera** (puedes restaurarlo); opcionalmente quita su archivo |
 | **🗑 Papelera** | Abre la papelera y el historial de cambios |
+
+**Al agregar, lo primero es elegir el tipo**: el formulario abre con 6 botones
+— **🔗 Enlace web**, **📝 Nota**, **✅ Actividad**, **📄 Manual**, **🖼 Imagen**
+y **👤 Personal**. No se guarda nada hasta que elijas uno (desde el calendario
+sale **✅ Actividad** elegida, porque todo lo nuevo de ahí es una actividad).
+Para **filtrar por categoría** ya no hay botones arriba: entra a **⚙ Filtros**
+y **pulsa la barra de la categoría** (la que apagues deja de mostrarse;
+"Limpiar filtros" vuelve a enseñarlo todo).
 
 Después de cada cambio la web vuelve a leer `registro.csv` (directo de GitHub) y
 muestra el resultado al instante.
@@ -203,8 +211,8 @@ actividades) colocado sobre el día de su fecha.
 
 - Ocupa **casi toda el área de trabajo**: rejilla grande del mes (**lunes
   primero**), **hoy** marcado y el día elegido resaltado.
-- **La rejilla no muestra ningún botón**: la barra de herramientas, los chips
-  de categoría, los filtros y la navegación **‹ mes › / Hoy** se esconden para
+- **La rejilla no muestra ningún botón**: la barra de herramientas, los filtros
+  y la navegación **‹ mes › / Hoy** se esconden para
   que solo veas **el calendario** (queda el título del mes).
   - Para **cambiar de mes**: haz clic en cualquiera de los **días grises** de
     la última o primera fila (son días del mes siguiente/anterior); se abre su
@@ -245,7 +253,7 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
 | **Conectar** / **🗑 Papelera** / **🩺 Revisar** / **📦 Respaldo** | Las 4 opciones del sistema, activas sobre ese día |
 | **📎 Adjuntar archivo** | Sube y cataloga con la **fecha de ese día** |
 | **📷 Tomar foto** | La foto queda con la **fecha de ese día** |
-| **🗂 Ver en la lista** | Filtra la lista a ese día: ahí usas chips, edición, compartir… |
+| **🗂 Ver en la lista** | Filtra la lista a ese día: ahí usas búsqueda, filtros, edición, compartir… |
 
 - En el **celular**, los botones grandes de la barra (**📅 Calendario, Filtros,
   Agregar, Vista, Papelera, Conectar**) aparecen en la **barra de abajo** mientras el
@@ -254,9 +262,9 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
   ✏️ Modificar y 🗑 Eliminar**, y las **estadísticas de arriba** responden a ese
   mismo día.
 
-> La rejilla no usa búsqueda, orden ni chips; **dentro del área**, el buscador
-> y el orden sí trabajan sobre el día elegido. Los elementos sin fecha no
-> salen (te avisa el contador de arriba).
+> La rejilla no usa búsqueda, orden ni filtros de categoría; **dentro del área**,
+> el buscador y el orden sí trabajan sobre el día elegido. Los elementos sin fecha
+> no salen (te avisa el contador de arriba).
 
 ### Para programar una actividad
 
@@ -264,9 +272,10 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
    área de trabajo**.
 2. Pulsa **➕ Agregar** (o 📎 Adjuntar / 📷 Tomar foto, que también quedan con la
    fecha de ese día).
-3. Escribe el título (obligatorio), el motivo y el evento, y pulsa **Guardar**.
+3. Escribe el título (obligatorio) — el tipo **✅ Actividad** ya viene elegido —,
+   el motivo y el evento, y pulsa **Guardar**.
 4. El punto aparece en el día, la actividad entra en **Lo que viene** y también
-   se ve en la lista normal con el chip **Actividad**.
+   se ve en la lista normal con la categoría **Actividad**.
 
 > Las actividades son registros normales: viven en `registro.csv`, entran en el
 > respaldo 📦, pasan por la papelera y se restauran igual que todo lo demás.

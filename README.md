@@ -10,8 +10,11 @@ Haz doble clic en **`indice.html`** (o en `Abrir-MiEspacio.bat`).
 Ahí ves todo en una sola pantalla, con:
 
 - Búsqueda instantánea por título, motivo, evento o URL.
-- Filtros por categoría (Personal, URL-Trabajo, Manual, Imagen-Sistema, Nota,
-  Actividad)
+- **Al agregar eliges el tipo** con 6 botones: 🔗 enlace, 📝 nota, ✅ actividad,
+  📄 manual, 🖼 imagen o 👤 personal (no se guarda nada sin elegirlo).
+- Filtros por categoría **dentro de ⚙ Filtros** (pulsa la barra de una categoría
+  para apagarla o encenderla): Personal, URL-Trabajo, Manual, Imagen-Sistema,
+  Nota, Actividad
   y filtro por rango de fechas.
 - Orden por fecha (reciente/antiguo), título, categoría o **evento**.
 - 4 vistas: **lista**, **compacta**, **línea de tiempo** y **📅 calendario**.

@@ -63,17 +63,15 @@
   button.pri:hover{filter:brightness(1.08)}
   .oculto{display:none!important}
 
-  .chips{display:flex;gap:7px;margin-top:9px;overflow-x:auto;padding-bottom:3px;
-         scrollbar-width:thin;-webkit-overflow-scrolling:touch}
-  .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--panel2);border-radius:999px;
-        padding:8px 14px;font-size:13px;cursor:pointer;color:var(--muted);user-select:none;white-space:nowrap}
-  .chip.on{color:#0f141a;font-weight:700;border-color:transparent}
-  .chip[data-c="Personal"].on{background:var(--c1)}
-  .chip[data-c="URL-Trabajo"].on{background:var(--c2)}
-  .chip[data-c="Manual"].on{background:var(--c3)}
-  .chip[data-c="Imagen-Sistema"].on{background:var(--c4)}
-  .chip[data-c="Nota"].on{background:var(--c5)}
-  .chip[data-c="Actividad"].on{background:var(--c6)}
+  /* ---------- elección del tipo al agregar/modificar ---------- */
+  .catEtq{display:block;font-size:13.5px;font-weight:650;margin-bottom:7px}
+  .catElegir{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .catOpc{padding:11px 4px;min-height:52px;border-radius:11px;border:1.5px solid var(--line);
+    background:var(--panel2);color:var(--txt);font-size:13px;font-weight:650;cursor:pointer;
+    text-align:center;line-height:1.25;transition:border-color .15s,box-shadow .15s,opacity .15s}
+  .catOpc:hover{border-color:var(--accent)}
+  .catOpc.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);font-weight:800}
+  .catOpc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
   .panel{border-top:1px dashed var(--line);margin-top:9px;padding-top:10px}
   .rango{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -83,11 +81,18 @@
   .graf{margin-top:12px;display:grid;gap:12px;grid-template-columns:1fr}
   @media(min-width:760px){ .graf{grid-template-columns:1fr 1fr} }
   .graf h2{margin:0 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
-  .barra{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12.5px}
-  .barra .nom{flex:0 0 auto;min-width:112px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .barra .pista{flex:1;background:var(--panel2);border-radius:6px;height:16px;overflow:hidden}
-  .barra .relleno{height:100%;background:var(--accent);border-radius:6px}
-  .barra .num{flex:0 0 auto;min-width:24px;text-align:right;font-variant-numeric:tabular-nums;color:var(--txt)}
+  .gbarra{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12.5px}
+  .gbarra .nom{flex:0 0 auto;min-width:112px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gbarra .pista{flex:1;background:var(--panel2);border-radius:6px;height:16px;overflow:hidden}
+  .gbarra .relleno{height:100%;background:var(--accent);border-radius:6px}
+  .gbarra .num{flex:0 0 auto;min-width:24px;text-align:right;font-variant-numeric:tabular-nums;color:var(--txt)}
+  /* filtrar por categoría: pulsa la barra para mostrar/ocultar esa categoría */
+  #gCat .gbarra{cursor:pointer;border-radius:8px;padding:3px 5px;margin-left:-5px;
+    transition:opacity .15s,background .15s}
+  #gCat .gbarra:hover{background:var(--panel2)}
+  #gCat .gbarra.off{opacity:.42}
+  #gCat .gbarra.off .nom{text-decoration:line-through}
+  #gCat .gbarra:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
   /* ------------------------------------------------------------ main */
   main{padding:14px 14px 96px;max-width:1150px;margin:0 auto}
@@ -254,7 +259,6 @@
 
   /* ---------- el calendario no enseña botones ---------- */
   body.vcal header .toolbar,
-  body.vcal header .chips,
   body.vcal header .panel{display:none}
   body.vcal:not(.vtrabajo) nav.barra{display:none}
   body.vcal:not(.vtrabajo) #list .calCab button{display:none}
@@ -367,7 +371,6 @@
     .tarj{flex-direction:column;gap:8px;padding:13px}
     .acciones{width:100%}
     .acciones a,.acciones button{flex:1 1 30%;min-width:96px;min-height:44px}
-    .chip{min-height:42px;display:inline-flex;align-items:center}
     .fila{flex-direction:column;gap:0}
     .fondo{padding:0;align-items:flex-end}
     .caja{max-width:none;max-height:94vh;border-radius:18px 18px 0 0;padding:18px 16px 26px}
@@ -419,8 +422,6 @@
     <button class="solo-grande" id="btnRespaldo" title="Descargar todo el espacio en un archivo .zip">📦 Respaldo</button>
   </div>
 
-  <div class="chips" id="chips" role="group" aria-label="Filtrar por categoría"></div>
-
   <div class="panel oculto" id="panel">
     <div class="rango">
       <label>Desde<input type="date" id="desde"></label>
@@ -428,7 +429,7 @@
       <button id="btnLimpiar" style="align-self:flex-end">Limpiar filtros</button>
     </div>
     <div class="graf">
-      <div><h2>Por categoría</h2><div id="gCat"></div></div>
+      <div><h2>Filtrar por categoría</h2><div id="gCat"></div></div>
       <div><h2>Por mes</h2><div id="gMes"></div></div>
     </div>
     <button id="btnRevisarM" style="width:100%;margin-top:12px">🩺 Revisar datos, archivos y enlaces del espacio</button>
@@ -461,15 +462,14 @@
     <h2 id="formTitulo">Agregar elemento</h2>
     <div class="ayuda">Todo lo que guardes queda con su fecha y el motivo por el que lo guardas.</div>
 
-    <div class="campo"><label for="f_titulo">Título *</label><input id="f_titulo" placeholder="Ej. Manual de inventario"></div>
-    <div class="fila">
-      <div class="campo"><label for="f_fecha">Fecha</label><input id="f_fecha" type="date"></div>
-      <div class="campo"><label for="f_cat">Categoría</label>
-        <select id="f_cat">
-          <option>Personal</option><option>URL-Trabajo</option><option>Manual</option>
-          <option>Imagen-Sistema</option><option>Nota</option><option>Actividad</option>
-        </select></div>
+    <div class="campo" style="margin-bottom:12px">
+      <span class="catEtq" id="catEtq">¿Qué tipo de registro es? *</span>
+      <div class="catElegir" id="catElegir" role="radiogroup" aria-labelledby="catEtq"></div>
+      <input type="hidden" id="f_cat">
     </div>
+
+    <div class="campo"><label for="f_titulo">Título *</label><input id="f_titulo" placeholder="Ej. Manual de inventario"></div>
+    <div class="campo"><label for="f_fecha">Fecha</label><input id="f_fecha" type="date"></div>
     <div class="campo"><label for="f_motivo">Motivo (¿por qué lo guardas?)</label>
       <textarea id="f_motivo" placeholder="Ej. Lo necesito para el inventario anual"></textarea></div>
     <div class="campo"><label for="f_evento">Evento / situación</label>
@@ -1654,11 +1654,39 @@ function render(){
 
 function barrasHTML(items, colores){
   const max = Math.max(1, ...items.map(x=>x.n));
-  return items.map((x,i)=>`<div class="barra">
+  return items.map((x,i)=>`<div class="gbarra">
       <span class="nom" title="${esc(x.k)}">${esc(x.k)}</span>
       <span class="pista"><span class="relleno" style="width:${Math.round(x.n/max*100)}%;
         ${colores? "background:"+colores[i%colores.length]:""}"></span></span>
       <span class="num">${x.n}</span></div>`).join("");
+}
+
+/* filtrar por categoría: cada barra de "Por categoría" se enciende o se apaga */
+function renderGCat(){
+  const por = c => DATOS.filter(r=>r.c===c).length;
+  $("gCat").innerHTML = barrasHTML(CATS.map(c=>({k:c, n:por(c)})),
+    CATS.map(c=>COLOR_CAT[c]));
+  $("gCat").querySelectorAll(".gbarra").forEach((b,i)=>{
+    const c = CATS[i];
+    b.setAttribute("role","button"); b.tabIndex = 0;
+    b.title = "Pulsa para mostrar u ocultar la categoría " + c;
+    const alterna = ()=>{
+      activos.has(c) ? activos.delete(c) : activos.add(c);
+      if(!activos.size) activos = new Set(CATS);
+      pintarGCat(); render();
+    };
+    b.onclick = alterna;
+    b.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); alterna(); } };
+  });
+  pintarGCat();
+}
+function pintarGCat(){
+  const g = $("gCat"); if(!g) return;
+  g.querySelectorAll(".gbarra").forEach((b,i)=>{
+    const on = activos.has(CATS[i]);
+    b.classList.toggle("off", !on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
 }
 
 function renderStats(){
@@ -1675,8 +1703,7 @@ function renderStats(){
     <div class="stat"><b>${por("Actividad")}</b>actividades</div>
     <div class="stat"><b style="font-size:13px;padding-top:6px">${rango}</b>rango de fechas</div>`;
 
-  $("gCat").innerHTML = barrasHTML(CATS.map(c=>({k:c, n:por(c)})),
-    CATS.map(c=>COLOR_CAT[c]));
+  $("gCat") && renderGCat();
 
   const meses = {};
   DATOS.forEach(r=>{ const k=(r.f||"").slice(0,7); if(k) meses[k]=(meses[k]||0)+1; });
@@ -1685,24 +1712,8 @@ function renderStats(){
   $("gMes").innerHTML = lista.length ? barrasHTML(lista) : '<div class="meta">Sin fechas todavía</div>';
 }
 
-function renderChips(){
-  $("chips").innerHTML = CATS.map(c=>
-    `<span class="chip ${activos.has(c)?"on":""}" data-c="${c}" role="button" tabindex="0">${
-      c} <b>${DATOS.filter(r=>r.c===c).length}</b></span>`).join("");
-  document.querySelectorAll(".chip").forEach(el=>{
-    const alterna = ()=>{
-      const c = el.dataset.c;
-      activos.has(c)? activos.delete(c) : activos.add(c);
-      if(!activos.size) activos = new Set(CATS);
-      renderChips(); render();
-    };
-    el.onclick = alterna;
-    el.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); alterna(); } };
-  });
-}
-
 function renderTodo(){
-  renderStats(); renderChips(); render(); pintarConexion(); pintarPapeleraBoton(); resaltarHash();
+  renderStats(); render(); pintarConexion(); pintarPapeleraBoton(); resaltarHash();
 }
 function pintarConexion(){
   const con = !!token();
@@ -1739,6 +1750,32 @@ function resaltarHash(){
 function abrir(id){ $(id).classList.add("on"); }
 function cerrar(id){ $(id).classList.remove("on"); }
 
+/* ===== elección del tipo de registro (en el formulario) ===== */
+const CAT_MOSTRAR = {
+  "Personal":"👤 Personal", "URL-Trabajo":"🔗 Enlace web", "Manual":"📄 Manual",
+  "Imagen-Sistema":"🖼 Imagen", "Nota":"📝 Nota", "Actividad":"✅ Actividad"
+};
+function pintarCatElegir(){
+  const caja = $("catElegir"); if(!caja) return;
+  const v = $("f_cat").value;
+  caja.querySelectorAll(".catOpc").forEach(b=>{
+    const on = (b.dataset.c === v);
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-checked", on ? "true" : "false");
+  });
+}
+function construirCatElegir(){
+  const caja = $("catElegir"); if(!caja) return;
+  caja.innerHTML = CATS.map(c =>
+    `<button type="button" class="catOpc b-${c}" data-c="${c}" role="radio" aria-checked="false">${
+      CAT_MOSTRAR[c] || c}</button>`).join("");
+  caja.querySelectorAll(".catOpc").forEach(b => b.onclick = ()=>{
+    $("f_cat").value = b.dataset.c;
+    pintarCatElegir(); pintarRuta();
+  });
+  pintarCatElegir();
+}
+
 function editar(i){
   editando = i;
   editandoOriginal = DATOS[i];
@@ -1747,6 +1784,7 @@ function editar(i){
   $("formTitulo").textContent = "Modificar elemento";
   $("f_titulo").value=o.t||""; $("f_fecha").value=o.f||"";
   $("f_cat").value = CATS.includes(o.c)?o.c:"Nota";
+  pintarCatElegir();
   $("f_motivo").value=o.m||""; $("f_evento").value=o.e||"";
   $("f_url").value = esUrl(o.u)?o.u:"";
   $("f_ubi").value = esUrl(o.u)?"":(o.u||"");
@@ -1760,10 +1798,12 @@ function agregar(){
   ocultarProgreso();
   $("formTitulo").textContent = "Agregar elemento";
   ["f_titulo","f_motivo","f_evento","f_url","f_ubi"].forEach(id=>$(id).value="");
-  /* en el calendario todo lo nuevo nace en el día elegido */
+  /* en el calendario todo lo nuevo nace en el día elegido y como Actividad;
+     en la lista el usuario elige el tipo en el formulario */
   const enCalendario = (vista === "calendario" && calSel);
   $("f_fecha").value = enCalendario ? calSel : new Date().toISOString().slice(0,10);
-  $("f_cat").value = enCalendario ? "Actividad" : "URL-Trabajo";
+  $("f_cat").value = enCalendario ? "Actividad" : "";
+  pintarCatElegir();
   pintarRuta();
   $("formSinToken").classList.toggle("oculto", !!token());
   abrir("fondoForm");
@@ -1778,6 +1818,7 @@ function pintarRuta(){
 async function guardar(){
   const t = $("f_titulo").value.trim();
   if(!t){ toast("El título es obligatorio", true); $("f_titulo").focus(); return; }
+  if(!$("f_cat").value){ toast("Elige el tipo de registro: enlace, nota, actividad…", true); return; }
   if(!token()){ cerrar("fondoForm"); abrir("fondoConn"); toast("Conecta tu cuenta de GitHub primero", true); return; }
 
   const obj = {
@@ -1939,6 +1980,7 @@ async function subirUno(info, ruta, archivo, mensaje, shaConocido){
 
 async function subirArchivos(archivos){
   if(!archivos || !archivos.length) return;
+  if(!$("f_cat").value){ toast("Primero elige el tipo de registro en el formulario", true); return; }
   if(!token()){ abrir("fondoConn"); toast("Conecta tu cuenta de GitHub para subir archivos", true); return; }
   const info = repoInfo();
   if(!info){ toast("Solo funciona en la web publicada", true); return; }
@@ -2351,7 +2393,7 @@ function alternarPanel(){
 }
 $("btnLimpiar").onclick = () => {
   $("q").value=""; $("desde").value=""; $("hasta").value="";
-  activos = new Set(CATS); renderChips(); render(); toast("Filtros limpiados");
+  activos = new Set(CATS); pintarGCat(); render(); toast("Filtros limpiados");
 };
 $("btnAdd").onclick = agregar;
 $("mAdd").onclick = agregar;
@@ -2405,6 +2447,7 @@ function archivosElegidos(e){
 }
 $("fileSubir").onchange = archivosElegidos;
 $("fileCamara").onchange = archivosElegidos;
+construirCatElegir();
 $("f_cat").onchange = pintarRuta;
 document.querySelectorAll(".fondo").forEach(f => f.onclick = e => { if(e.target===f) f.classList.remove("on"); });
 $("okSi").onclick = () => terminarPregunta(true);

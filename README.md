@@ -10,8 +10,9 @@ Haz doble clic en **`indice.html`** (o en `Abrir-MiEspacio.bat`).
 Ahí ves todo en una sola pantalla, con:
 
 - Búsqueda instantánea por título, motivo, evento o URL.
-- **Al agregar eliges el tipo** con 6 botones: 🔗 enlace, 📝 nota, ✅ actividad,
-  📄 manual, 🖼 imagen o 👤 personal (no se guarda nada sin elegirlo).
+- **Tú escribes qué es**: en el campo **¿Qué es?** escribes `url`, `nota`,
+  `actividad`… o **tu propia palabra** (`acta`, `inventario`); lo conocido se
+  reconoce solo y lo tuyo queda con tu nombre.
 - Filtros por categoría **dentro de ⚙ Filtros** (pulsa la barra de una categoría
   para apagarla o encenderla): Personal, URL-Trabajo, Manual, Imagen-Sistema,
   Nota, Actividad

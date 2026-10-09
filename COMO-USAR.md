@@ -61,18 +61,21 @@ pública lo muestra). Si usas otro equipo, lo conectas ahí también. Para quita
 
 | Botón | Qué hace |
 |---|---|
-| **+ Agregar** | Formulario: eliges el **tipo** (enlace, nota, actividad…), fecha, motivo y evento → sube a GitHub |
+| **+ Agregar** | Formulario: escribes **qué es** (url, nota, actividad… o la tuya), fecha, motivo y evento → sube a GitHub |
 | **Modificar** | Abre el elemento con todos sus datos → guarda los cambios |
 | **Eliminar** | **Lo mueve a la papelera** (puedes restaurarlo); opcionalmente quita su archivo |
 | **🗑 Papelera** | Abre la papelera y el historial de cambios |
 
-**Al agregar, lo primero es elegir el tipo**: el formulario abre con 6 botones
-— **🔗 Enlace web**, **📝 Nota**, **✅ Actividad**, **📄 Manual**, **🖼 Imagen**
-y **👤 Personal**. No se guarda nada hasta que elijas uno (desde el calendario
-sale **✅ Actividad** elegida, porque todo lo nuevo de ahí es una actividad).
-Para **filtrar por categoría** ya no hay botones arriba: entra a **⚙ Filtros**
-y **pulsa la barra de la categoría** (la que apagues deja de mostrarse;
-"Limpiar filtros" vuelve a enseñarlo todo).
+**Al agregar, escribes tú qué es**: en el campo **¿Qué es?** escribe la clase
+— `url`, `nota`, `actividad`, `manual`, `imagen`… o **la tuya** (`acta`,
+`inventario`, `acta de reunión`…). Si escribes una conocida, la web la
+reconoce (misma carpeta, mismo color, y si es actividad entra en **Lo que
+viene**); si escribes otra, queda con **tu palabra** y aparece en los filtros
+igual. No se guarda nada sin escribirlo (desde el calendario el campo viene
+con `Actividad`).
+Para **filtrar por categoría** entra a **⚙ Filtros** y **pulsa la barra de la
+categoría** (la que apagues deja de mostrarse; "Limpiar filtros" vuelve a
+enseñarlo todo).
 
 Después de cada cambio la web vuelve a leer `registro.csv` (directo de GitHub) y
 muestra el resultado al instante.
@@ -249,7 +252,7 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
 | **Orden** | Ordena los elementos del día (título, fecha, categoría…) |
 | **Vista** | Cambia a Lista / Compacta / Línea / Calendario |
 | **⚙ Filtros** | Rango de fechas y gráficas, **dentro del área** |
-| **➕ Agregar** | Abre el formulario con la **fecha ya puesta** y la categoría **Actividad** |
+| **➕ Agregar** | Abre el formulario con la **fecha ya puesta** y **Actividad** ya escrito en ¿Qué es? |
 | **Conectar** / **🗑 Papelera** / **🩺 Revisar** / **📦 Respaldo** | Las 4 opciones del sistema, activas sobre ese día |
 | **📎 Adjuntar archivo** | Sube y cataloga con la **fecha de ese día** |
 | **📷 Tomar foto** | La foto queda con la **fecha de ese día** |
@@ -272,8 +275,8 @@ rejilla) y **ahí se activan todos los botones que necesitas**, incluida la
    área de trabajo**.
 2. Pulsa **➕ Agregar** (o 📎 Adjuntar / 📷 Tomar foto, que también quedan con la
    fecha de ese día).
-3. Escribe el título (obligatorio) — el tipo **✅ Actividad** ya viene elegido —,
-   el motivo y el evento, y pulsa **Guardar**.
+3. Escribe el título (obligatorio) — el campo **¿Qué es?** ya viene con
+   **Actividad** —, el motivo y el evento, y pulsa **Guardar**.
 4. El punto aparece en el día, la actividad entra en **Lo que viene** y también
    se ve en la lista normal con la categoría **Actividad**.
 

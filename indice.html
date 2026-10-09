@@ -63,16 +63,6 @@
   button.pri:hover{filter:brightness(1.08)}
   .oculto{display:none!important}
 
-  /* ---------- elección del tipo al agregar/modificar ---------- */
-  .catEtq{display:block;font-size:13.5px;font-weight:650;margin-bottom:7px}
-  .catElegir{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-  .catOpc{padding:11px 4px;min-height:52px;border-radius:11px;border:1.5px solid var(--line);
-    background:var(--panel2);color:var(--txt);font-size:13px;font-weight:650;cursor:pointer;
-    text-align:center;line-height:1.25;transition:border-color .15s,box-shadow .15s,opacity .15s}
-  .catOpc:hover{border-color:var(--accent)}
-  .catOpc.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);font-weight:800}
-  .catOpc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
   .panel{border-top:1px dashed var(--line);margin-top:9px;padding-top:10px}
   .rango{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .rango label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
@@ -463,9 +453,10 @@
     <div class="ayuda">Todo lo que guardes queda con su fecha y el motivo por el que lo guardas.</div>
 
     <div class="campo" style="margin-bottom:12px">
-      <span class="catEtq" id="catEtq">¿Qué tipo de registro es? *</span>
-      <div class="catElegir" id="catElegir" role="radiogroup" aria-labelledby="catEtq"></div>
-      <input type="hidden" id="f_cat">
+      <label for="f_cat">¿Qué es? *</label>
+      <input id="f_cat" list="lstTipo" autocomplete="off"
+             placeholder="Escríbelo: url, nota, actividad, manual, imagen, acta…">
+      <datalist id="lstTipo"></datalist>
     </div>
 
     <div class="campo"><label for="f_titulo">Título *</label><input id="f_titulo" placeholder="Ej. Manual de inventario"></div>
@@ -622,13 +613,17 @@ const CARPETAS = {"Personal":"01-Archivos-Personales","URL-Trabajo":"02-URLs-Tra
                   "Nota":"05-Notas-y-Eventos","Actividad":"05-Notas-y-Eventos"};
 const COLOR_CAT = {"Personal":"var(--c1)","URL-Trabajo":"var(--c2)","Manual":"var(--c3)",
                    "Imagen-Sistema":"var(--c4)","Nota":"var(--c5)","Actividad":"var(--c6)"};
-const colorDe = c => COLOR_CAT[c] || "var(--muted)";
+const colorDe = c => COLOR_CAT[c] ||
+  ["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)","var(--c6)"][
+    (function(){ let h = 0; const s = String(c||"");
+      for(let i = 0; i < s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+      return h % 6; })()];
 const DIAS_SEMANA = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 
-let activos = new Set(CATS);
+let apagadas = new Set();      /* categorías apagadas en ⚙ Filtros (vacío = todas) */
 /* versión de esta publicación: si la nube tiene otra más nueva, la web se
    actualiza sola (la escribe Generar-Indice.ps1) */
-const VERSION = "2026-10-09 12:31:23";
+const VERSION = "2026-10-09 14:04:02";
 
 /* la web recuerda la vista con la que te quedaste (por defecto: el calendario) */
 let vista = "calendario";
@@ -744,8 +739,6 @@ function validarDatos(lista){
     if(tit) et = '"' + tit + '"';
     if(!tit) errores.push(et + ": no tiene título.");
     if(!cat) errores.push(et + ": no tiene categoría.");
-    else if(!CATS.includes(cat)) errores.push(et + ': la categoría "' + cat +
-      '" no está permitida (' + CATS.join(", ") + ").");
     if(!fec) avisos.push(et + ": está sin fecha.");
     else{
       const d = new Date(fec + "T00:00:00");
@@ -1244,7 +1237,7 @@ function filtrados(){
   const q = $("q").value.trim();
   const orden = $("orden").value;
   const desde = $("desde").value, hasta = $("hasta").value;
-  let r = DATOS.filter(x => activos.has(x.c));
+  let r = DATOS.filter(x => !apagadas.has(x.c));
   if(desde) r = r.filter(x => (x.f||"") >= desde);
   if(hasta) r = r.filter(x => (x.f||"") <= hasta);
   if(q) r = r.filter(x => coincide(textoDel(x), q));
@@ -1404,7 +1397,7 @@ function renderCalendario(){
   h += '</div><div class="leyenda">' +
        '<span class="badge leyMes">fondo apagado = otro mes</span>' +
        '<span class="badge leyDato">recuadro = día con contenido</span>' +
-       CATS.map(c => `<span class="badge b-${c}">${c}</span>`).join("") + '</div>';
+       categoriasVivas().map(c => `<span class="badge b-${c}">${c}</span>`).join("") + '</div>';
 
   /* ---- día elegido: la rejilla NO enseña botones ----
      (todo se activa dentro del área de trabajo al hacer clic) */
@@ -1654,7 +1647,7 @@ function render(){
 
 function barrasHTML(items, colores){
   const max = Math.max(1, ...items.map(x=>x.n));
-  return items.map((x,i)=>`<div class="gbarra">
+  return items.map((x,i)=>`<div class="gbarra" data-k="${esc(x.k)}">
       <span class="nom" title="${esc(x.k)}">${esc(x.k)}</span>
       <span class="pista"><span class="relleno" style="width:${Math.round(x.n/max*100)}%;
         ${colores? "background:"+colores[i%colores.length]:""}"></span></span>
@@ -1663,16 +1656,16 @@ function barrasHTML(items, colores){
 
 /* filtrar por categoría: cada barra de "Por categoría" se enciende o se apaga */
 function renderGCat(){
+  const cats = categoriasVivas();
   const por = c => DATOS.filter(r=>r.c===c).length;
-  $("gCat").innerHTML = barrasHTML(CATS.map(c=>({k:c, n:por(c)})),
-    CATS.map(c=>COLOR_CAT[c]));
-  $("gCat").querySelectorAll(".gbarra").forEach((b,i)=>{
-    const c = CATS[i];
+  $("gCat").innerHTML = barrasHTML(cats.map(c=>({k:c, n:por(c)})),
+    cats.map(c=>colorDe(c)));
+  $("gCat").querySelectorAll(".gbarra").forEach(b=>{
+    const c = b.dataset.k;
     b.setAttribute("role","button"); b.tabIndex = 0;
     b.title = "Pulsa para mostrar u ocultar la categoría " + c;
     const alterna = ()=>{
-      activos.has(c) ? activos.delete(c) : activos.add(c);
-      if(!activos.size) activos = new Set(CATS);
+      apagadas.has(c) ? apagadas.delete(c) : apagadas.add(c);
       pintarGCat(); render();
     };
     b.onclick = alterna;
@@ -1682,8 +1675,8 @@ function renderGCat(){
 }
 function pintarGCat(){
   const g = $("gCat"); if(!g) return;
-  g.querySelectorAll(".gbarra").forEach((b,i)=>{
-    const on = activos.has(CATS[i]);
+  g.querySelectorAll(".gbarra").forEach(b=>{
+    const on = !apagadas.has(b.dataset.k);
     b.classList.toggle("off", !on);
     b.setAttribute("aria-pressed", on ? "true" : "false");
   });
@@ -1713,7 +1706,7 @@ function renderStats(){
 }
 
 function renderTodo(){
-  renderStats(); render(); pintarConexion(); pintarPapeleraBoton(); resaltarHash();
+  renderStats(); renderTipos(); render(); pintarConexion(); pintarPapeleraBoton(); resaltarHash();
 }
 function pintarConexion(){
   const con = !!token();
@@ -1750,30 +1743,35 @@ function resaltarHash(){
 function abrir(id){ $(id).classList.add("on"); }
 function cerrar(id){ $(id).classList.remove("on"); }
 
-/* ===== elección del tipo de registro (en el formulario) ===== */
-const CAT_MOSTRAR = {
-  "Personal":"👤 Personal", "URL-Trabajo":"🔗 Enlace web", "Manual":"📄 Manual",
-  "Imagen-Sistema":"🖼 Imagen", "Nota":"📝 Nota", "Actividad":"✅ Actividad"
+/* ===== el usuario ESCRIBE qué es (sin botones) =====
+   Si escribe algo conocido (url, nota, actividad…) se reconoce y guarda como
+   la categoría de siempre (misma carpeta, mismo color, mismos avisos);
+   si escribe otra cosa, queda con SU palabra y se filtra igual. */
+const MAPA_TIPOS = {
+  "personal":"Personal", "personales":"Personal",
+  "url":"URL-Trabajo", "urls":"URL-Trabajo", "url-trabajo":"URL-Trabajo",
+  "trabajo":"URL-Trabajo", "enlace":"URL-Trabajo", "enlaces":"URL-Trabajo",
+  "link":"URL-Trabajo", "web":"URL-Trabajo",
+  "manual":"Manual", "manuales":"Manual",
+  "imagen":"Imagen-Sistema", "imagenes":"Imagen-Sistema", "imagen-sistema":"Imagen-Sistema",
+  "foto":"Imagen-Sistema", "fotos":"Imagen-Sistema",
+  "nota":"Nota", "notas":"Nota", "evento":"Nota", "eventos":"Nota",
+  "actividad":"Actividad", "actividades":"Actividad", "tarea":"Actividad", "tareas":"Actividad"
 };
-function pintarCatElegir(){
-  const caja = $("catElegir"); if(!caja) return;
-  const v = $("f_cat").value;
-  caja.querySelectorAll(".catOpc").forEach(b=>{
-    const on = (b.dataset.c === v);
-    b.classList.toggle("on", on);
-    b.setAttribute("aria-checked", on ? "true" : "false");
-  });
+function normalizaTipo(t){
+  const s = String(t||"").trim().replace(/\s+/g," ").slice(0,40);
+  if(!s) return "";
+  const k = s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  return MAPA_TIPOS[k] || s;
 }
-function construirCatElegir(){
-  const caja = $("catElegir"); if(!caja) return;
-  caja.innerHTML = CATS.map(c =>
-    `<button type="button" class="catOpc b-${c}" data-c="${c}" role="radio" aria-checked="false">${
-      CAT_MOSTRAR[c] || c}</button>`).join("");
-  caja.querySelectorAll(".catOpc").forEach(b => b.onclick = ()=>{
-    $("f_cat").value = b.dataset.c;
-    pintarCatElegir(); pintarRuta();
-  });
-  pintarCatElegir();
+function categoriasVivas(){
+  const r = CATS.slice();
+  DATOS.forEach(o => { if(o.c && r.indexOf(o.c) < 0) r.push(o.c); });
+  return r;
+}
+function renderTipos(){
+  const dl = $("lstTipo"); if(!dl) return;
+  dl.innerHTML = categoriasVivas().map(c => "<option>" + esc(c) + "</option>").join("");
 }
 
 function editar(i){
@@ -1783,8 +1781,7 @@ function editar(i){
   ocultarProgreso();
   $("formTitulo").textContent = "Modificar elemento";
   $("f_titulo").value=o.t||""; $("f_fecha").value=o.f||"";
-  $("f_cat").value = CATS.includes(o.c)?o.c:"Nota";
-  pintarCatElegir();
+  $("f_cat").value = o.c||"";
   $("f_motivo").value=o.m||""; $("f_evento").value=o.e||"";
   $("f_url").value = esUrl(o.u)?o.u:"";
   $("f_ubi").value = esUrl(o.u)?"":(o.u||"");
@@ -1803,7 +1800,7 @@ function agregar(){
   const enCalendario = (vista === "calendario" && calSel);
   $("f_fecha").value = enCalendario ? calSel : new Date().toISOString().slice(0,10);
   $("f_cat").value = enCalendario ? "Actividad" : "";
-  pintarCatElegir();
+  pintarRuta();
   pintarRuta();
   $("formSinToken").classList.toggle("oculto", !!token());
   abrir("fondoForm");
@@ -1818,12 +1815,12 @@ function pintarRuta(){
 async function guardar(){
   const t = $("f_titulo").value.trim();
   if(!t){ toast("El título es obligatorio", true); $("f_titulo").focus(); return; }
-  if(!$("f_cat").value){ toast("Elige el tipo de registro: enlace, nota, actividad…", true); return; }
+  if(!$("f_cat").value.trim()){ toast("Escribe qué es: url, nota, actividad…", true); $("f_cat").focus(); return; }
   if(!token()){ cerrar("fondoForm"); abrir("fondoConn"); toast("Conecta tu cuenta de GitHub primero", true); return; }
 
   const obj = {
     f: $("f_fecha").value || new Date().toISOString().slice(0,10),
-    c: $("f_cat").value, t,
+    c: normalizaTipo($("f_cat").value), t,
     u: $("f_url").value.trim() || $("f_ubi").value.trim(),
     m: $("f_motivo").value.trim(), e: $("f_evento").value.trim()
   };
@@ -1980,7 +1977,7 @@ async function subirUno(info, ruta, archivo, mensaje, shaConocido){
 
 async function subirArchivos(archivos){
   if(!archivos || !archivos.length) return;
-  if(!$("f_cat").value){ toast("Primero elige el tipo de registro en el formulario", true); return; }
+  if(!$("f_cat").value.trim()){ toast("Primero escribe qué es en el formulario", true); return; }
   if(!token()){ abrir("fondoConn"); toast("Conecta tu cuenta de GitHub para subir archivos", true); return; }
   const info = repoInfo();
   if(!info){ toast("Solo funciona en la web publicada", true); return; }
@@ -2004,7 +2001,7 @@ async function subirArchivos(archivos){
     else catalogar = true;
   }
 
-  const carpeta = CARPETAS[$("f_cat").value] || "01-Archivos-Personales";
+  const carpeta = CARPETAS[$("f_cat").value] || "04-Otros";
   const sello = new Date().toISOString().slice(0,10).replace(/-/g,"");
   verProgreso("Buscando archivos repetidos…", .05);
   const existentes = await listarCarpeta(info, carpeta);
@@ -2059,7 +2056,7 @@ async function subirArchivos(archivos){
     const hoy = new Date().toISOString().slice(0,10);
     const registros = subidas.map(p => ({
       f: $("f_fecha").value || hoy,
-      c: $("f_cat").value,
+      c: normalizaTipo($("f_cat").value),
       t: tituloDeArchivo(p.a.name),
       u: p.ruta,
       m: $("f_motivo").value.trim(),
@@ -2393,7 +2390,7 @@ function alternarPanel(){
 }
 $("btnLimpiar").onclick = () => {
   $("q").value=""; $("desde").value=""; $("hasta").value="";
-  activos = new Set(CATS); pintarGCat(); render(); toast("Filtros limpiados");
+  apagadas.clear(); pintarGCat(); render(); toast("Filtros limpiados");
 };
 $("btnAdd").onclick = agregar;
 $("mAdd").onclick = agregar;
@@ -2447,8 +2444,8 @@ function archivosElegidos(e){
 }
 $("fileSubir").onchange = archivosElegidos;
 $("fileCamara").onchange = archivosElegidos;
-construirCatElegir();
-$("f_cat").onchange = pintarRuta;
+renderTipos();
+$("f_ubi").addEventListener("change", pintarRuta);
 document.querySelectorAll(".fondo").forEach(f => f.onclick = e => { if(e.target===f) f.classList.remove("on"); });
 $("okSi").onclick = () => terminarPregunta(true);
 $("okNo").onclick = () => terminarPregunta(false);

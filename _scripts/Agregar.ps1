@@ -34,6 +34,7 @@ $carpeta = switch ($Categoria) {
   'Imagen-Sistema' { '04-Imagenes-Sistemas' }
   'Nota'           { '05-Notas-y-Eventos' }
   'Actividad'      { '05-Notas-y-Eventos' }
+  default          { '04-Otros' }   # categoria propia que hayas escrito
 }
 
 # Convierte la ruta a relativa dentro de MiEspacio (así el enlace funciona

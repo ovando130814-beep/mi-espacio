@@ -1,4 +1,4 @@
-<#
+﻿<#
   Revisa registro.csv antes de subirlo a la nube.
 
   Evita los fallos que rompen el catalogo:
@@ -25,7 +25,6 @@ $ErrorActionPreference = 'Continue'
 
 $csvPath = Join-Path $Raiz 'registro.csv'
 $Columnas = @('Fecha','Categoria','Titulo','Tipo','Ubicacion','URL','Motivo','Evento')
-$Permitidas = @('Personal','URL-Trabajo','Manual','Imagen-Sistema','Nota','Actividad')
 $MapaCat = @{
   'personales'='Personal'; 'personal'='Personal'
   'url'='URL-Trabajo'; 'urls'='URL-Trabajo'; 'url-trabajo'='URL-Trabajo'; 'trabajo'='URL-Trabajo'
@@ -228,7 +227,6 @@ foreach ($f in $datos.Filas) {
   if ($tit -eq '') { $errores += "${et}: no tiene titulo." } else { $et = "`"$tit`"" }
 
   if ($cat -eq '') { $errores += "${et}: no tiene categoria." }
-  elseif ($Permitidas -notcontains $cat) { $errores += "${et}: la categoria `"$cat`" no esta permitida (valores: $($Permitidas -join ', '))." }
 
   if ($fec -ne '') {
     $d = $null

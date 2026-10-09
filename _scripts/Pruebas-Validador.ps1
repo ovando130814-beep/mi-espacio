@@ -64,7 +64,7 @@ $r = Correr $d2
 Ok ($r.Codigo -eq 1) "sale con codigo 1 (obtenido $($r.Codigo))"
 Ok ($r.Salida -match 'VACIA') "detecta la fila vacia"
 Ok ($r.Salida -match 'fecha imposible|no es valida') "detecta la fecha imposible"
-Ok ($r.Salida -match 'Trucos') "detecta la categoria no permitida"
+Ok ($r.Salida -notmatch 'no esta permitida') "acepta categorias propias (Trucos)"
 Ok ($r.Salida -match 'no-existe\.pdf') "detecta el archivo que falta"
 Ok ($r.Salida -match 'no tiene titulo') "detecta el registro sin titulo"
 Ok ($r.Salida -match 'repetido') "avisa del registro repetido"
@@ -81,7 +81,7 @@ $tras = Get-Content (Join-Path $d2 'registro.csv') -Raw -Encoding UTF8
 Ok ($tras -match '2025-12-31') "quedo convertida como 2025-12-31 en el archivo"
 Ok ($r.Salida -notmatch 'barra invertida|barras invertidas') "las barras quedaron corregidas"
 Ok ($r.Codigo -eq 1) "sigue saliendo con codigo 1 (queda lo manual)"
-Ok ($r.Salida -match 'Trucos') "conserva el error de categoria"
+Ok ($r.Salida -notmatch 'no esta permitida') "no se queja de la categoria propia"
 Ok ($r.Salida -match 'no-existe\.pdf') "conserva el error de archivo faltante"
 $tras = Get-Content (Join-Path $d2 'registro.csv') -Raw -Encoding UTF8
 Ok ($tras -notmatch '(?m)^,+,') "la fila vacia ya no esta en el archivo"
@@ -107,6 +107,19 @@ $d5 = Join-Path $tmp 'nofile'
 New-Item -ItemType Directory -Force -Path $d5 | Out-Null
 $r = Correr $d5
 Ok ($r.Codigo -eq 1) "sale con codigo 1 cuando no hay registro.csv"
+
+Write-Host "8) Categoria propia (el usuario escribe la suya) y categoria vacia" -ForegroundColor Cyan
+$csvCat = $cab + $NL +
+  '"2026-03-01","Acta de reunion","Titulo acta","","","","m","e"' + $NL +
+  '"2026-03-02","","Sin categoria","","","","m","e"' + $NL
+$d6 = Nueva-Carpeta 'propia' $csvCat
+$r = Correr $d6
+Ok ($r.Codigo -eq 1) "la categoria vacia sigue dando error (obtenido $($r.Codigo))"
+Ok ($r.Salida -match 'no tiene categoria') "detecta la categoria vacia"
+Ok ($r.Salida -notmatch 'no esta permitida') "la categoria propia no genera error"
+$r = Correr $d6 -Corregir
+$tras = Get-Content (Join-Path $d6 'registro.csv') -Raw -Encoding UTF8
+Ok ($tras -match 'Acta de reunion') "-Corregir conserva la categoria propia"
 
 Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
 Write-Host ""

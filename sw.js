@@ -23,7 +23,7 @@ self.addEventListener("fetch", e => {
   /* la nube (api.github.com) nunca se cachea: guardar y borrar va en vivo */
   if(e.request.method !== "GET" || u.origin !== location.origin) return;
 
-  const esDato = /registro\.csv|papelera\.json|filtros\.json/.test(u.pathname);
+  const esDato = /registro\.csv|papelera\.json|filtros\.json|alarmas\.json/.test(u.pathname);
   if(esDato || e.request.mode === "navigate"){
     /* datos y página: primero la nube; si no hay internet → la copia guardada */
     e.respondWith(

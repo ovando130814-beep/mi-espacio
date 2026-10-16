@@ -138,6 +138,25 @@
   .avisTodo{margin-top:8px;width:100%;padding:7px;border-radius:9px;border:1px dashed var(--line);
     background:transparent;color:var(--muted);cursor:pointer;font-size:12.5px}
   .avisTodo:hover{color:var(--txt);border-color:var(--line)}
+  /* ---------- alarmas con sonido ---------- */
+  .alarmaFila{display:flex;gap:9px;align-items:center;justify-content:space-between;
+    font-size:13.5px;padding:7px 0;border-top:1px dashed var(--line)}
+  .alarmaFila:first-of-type{border-top:none}
+  .alarmaCue{min-width:0}
+  .alarmaHora{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);display:block}
+  .alarmaPerdida{color:var(--muted)}
+  .alarmaAcc{display:flex;gap:6px;flex:0 0 auto}
+  .alarmaAcc button{padding:5px 9px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--txt);cursor:pointer;min-height:34px}
+  .alarmaAcc button:hover{border-color:var(--accent);color:var(--accent)}
+  .calDia .alr{font-size:11px;color:var(--accent);line-height:1;align-self:flex-end}
+  .dtAlarma{display:flex;gap:8px;align-items:center;justify-content:space-between;
+    background:var(--panel2);border:1px dashed var(--line);border-radius:9px;
+    padding:7px 9px;margin-top:7px;font-size:13px}
+  .dtAlarma .alrHora{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent)}
+  .dtAlarma button{padding:4px 9px;border-radius:8px;border:1px solid var(--line);
+    background:transparent;color:var(--muted);cursor:pointer}
+  .dtAlarma button:hover{color:var(--mal);border-color:var(--mal)}
   .meta{font-size:13px;color:var(--muted);margin-top:5px;word-break:break-word}
   .meta .k{color:var(--dim);font-weight:700}
   .ev{display:inline-block;background:var(--panel2);border:1px dashed var(--line);
@@ -410,6 +429,7 @@
     <button class="solo-grande" id="btnPapelera" title="Papelera e historial: recuperar lo borrado">🗑 Papelera</button>
     <button class="solo-grande" id="btnRevisar" title="Comprobar datos, archivos y enlaces">🩺 Revisar</button>
     <button class="solo-grande" id="btnRespaldo" title="Descargar todo el espacio en un archivo .zip">📦 Respaldo</button>
+    <button class="solo-grande" id="btnAlarmas" title="Alarmas con sonido: elige el día y la hora exacta">⏰ Alarmas</button>
   </div>
 
   <div class="panel oculto" id="panel">
@@ -425,6 +445,7 @@
     <button id="btnRevisarM" style="width:100%;margin-top:12px">🩺 Revisar datos, archivos y enlaces del espacio</button>
     <button id="btnRespaldoM" style="width:100%;margin-top:8px">📦 Descargar todo el espacio en un archivo .zip (respaldo)</button>
     <button id="btnAvisos" style="width:100%;margin-top:8px">🔔 Avisarme el día antes de cada actividad (notificaciones)</button>
+    <button id="btnAlarmasM" style="width:100%;margin-top:8px">⏰ Alarmas con sonido (día y hora exacta)</button>
     <button id="btnExportar" style="width:100%;margin-top:8px">📤 Exportar a Excel (.csv) lo que estás viendo</button>
   </div>
 </header>
@@ -554,6 +575,49 @@
     <div class="btns">
       <button id="papVaciar" style="border-color:#c5372c;color:#c5372c">Vaciar papelera</button>
       <button class="pri" id="papCerrar">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ALARMAS CON SONIDO ===================== -->
+<div class="fondo" id="fondoAlarma" role="dialog" aria-modal="true" aria-labelledby="alarmaTitulo">
+  <div class="caja">
+    <h2 id="alarmaTitulo">⏰ Alarmas con sonido</h2>
+    <div class="ayuda">Cada alarma lleva su <b>día</b>, su <b>hora exacta</b> y su <b>sonido</b>.
+      A la hora puesta suena aquí dentro y, si el navegador lo permite, sale también el aviso
+      del sistema. <b>La app tiene que estar abierta</b> para que suene: en el celular, con la
+      app instalada, basta con tenerla abierta o minimizada. Sin conectar la cuenta, las alarmas
+      quedan guardadas solo en este equipo.</div>
+
+    <div id="alarmaLista"></div>
+
+    <div style="border-top:1px dashed var(--line);margin-top:11px;padding-top:11px">
+      <div class="campo"><label for="al_titulo">¿Qué te recuerdo?</label>
+        <input id="al_titulo" placeholder="Ej. Entrar a la junta"></div>
+      <div style="display:flex;gap:9px">
+        <div class="campo" style="flex:1"><label for="al_fecha">Día</label><input id="al_fecha" type="date"></div>
+        <div class="campo" style="flex:1"><label for="al_hora">Hora</label><input id="al_hora" type="time"></div>
+      </div>
+      <div class="campo"><label for="al_tono">Sonido de esta alarma</label>
+        <select id="al_tono">
+          <option value="1">🔔 Campana</option>
+          <option value="2">📢 Doble pip</option>
+          <option value="3">🚨 Alerta urgente</option>
+          <option value="4">🎵 Melodía</option>
+        </select></div>
+      <div class="campo">
+        <label><input type="checkbox" id="al_hablar" checked style="width:auto;min-height:0">
+          <span>🗣 Decir el mensaje en voz alta, además del sonido</span></label>
+      </div>
+
+      <div class="btns">
+        <button id="alProbar">🔊 Probar el sonido</button>
+        <button id="alPermiso">🔔 Activar el aviso del sistema</button>
+      </div>
+      <div class="btns">
+        <button id="alCancelar">Cancelar</button>
+        <button class="pri" id="alGuardar">Poner alarma</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1025,7 +1089,7 @@ function crearZip(entradas){                 /* [{ruta, bytes}] → Blob .zip */
   return new Blob(partes.concat(centro, [fin]), {type:"application/zip"});
 }
 /* lo que se respalda: las carpetas de datos + catálogo + papelera */
-const esDatoDeEspacio = p => /^0[1-5]-/.test(p) || p === "registro.csv" || p === "papelera.json";
+const esDatoDeEspacio = p => /^0[1-5]-/.test(p) || p === "registro.csv" || p === "papelera.json" || p === "alarmas.json";
 /* bytes de un archivo del repo: primero raw (no pide token), luego la API */
 async function bytesDeItem(info, item){
   const ruta = item.path.split("/").map(encodeURIComponent).join("/");
@@ -1044,7 +1108,7 @@ async function respaldar(){
   revTrabajando = true;
   $("revTitulo").textContent = "📦 Descargar respaldo (ZIP)";
   $("revAyuda").textContent = "Descarga una copia de TODO tu espacio en un solo archivo .zip: el catálogo, " +
-    "la papelera y todas tus carpetas. Guárdalo en tu PC, en un USB o mándatelo por correo.";
+    "la papelera, las alarmas y todas tus carpetas. Guárdalo en tu PC, en un USB o mándatelo por correo.";
   $("revOtra").classList.add("oculto");
   $("revCopiar").classList.add("oculto");
   $("revCuerpo").innerHTML = '<div class="revProgreso" role="status" aria-live="polite">' +
@@ -1096,10 +1160,11 @@ async function respaldar(){
       "CONTENIDO\r\n" +
       "  registro.csv     tu catalogo (fecha, categoria, titulo, tipo, ubicacion, URL, motivo, evento)\r\n" +
       "  papelera.json    lo que borraste (se puede restaurar)\r\n" +
+      "  alarmas.json     tus alarmas con sonido (día y hora)\r\n" +
       "  01- … 05-        tus archivos, fotos y documentos (carpetas)\r\n" +
       "  este archivo     estas instrucciones\r\n\r\n" +
       "COMO RESTAURAR (descomprime este ZIP y sigue los pasos)\r\n" +
-      "  1) Copia a tu carpeta MiEspacio las carpetas 01-… a 05-…, registro.csv y papelera.json.\r\n" +
+      "  1) Copia a tu carpeta MiEspacio las carpetas 01-… a 05-…, registro.csv, papelera.json y alarmas.json.\r\n" +
       "  2) Abre la web (o ejecuta _scripts\\Generar-Indice.ps1) para verlo todo de nuevo.\r\n" +
       "  3) Si a un archivo le falta su registro, vuelve a subirlo desde la web.\r\n")});
     const blob = crearZip(entradas);
@@ -1330,6 +1395,7 @@ function calSeguir(iso){              /* tras guardar, que el calendario lo mues
 /* toda opción elegida en el calendario actúa SOBRE el día elegido */
 function diaAccion(que){
   if(!calSel) return;
+  if(que === "alarma"){ abrirAlarmas(calSel); return; }   /* alarma del día elegido */
   if(que === "lista"){                /* ese día en la lista: con orden, edición, todo */
     $("desde").value = calSel;
     $("hasta").value = calSel;
@@ -1373,6 +1439,10 @@ function renderCalendario(){
     '<div class="calGrid">' +
     ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(x => '<div class="calDow">' + x + '</div>').join("");
 
+  /* días con alarma: la rejilla los marca con ⏰ */
+  const alDia = {};
+  ALARMAS.forEach(a => { if(/^\d{4}-\d{2}-\d{2}$/.test(a.f||"")) (alDia[a.f] = alDia[a.f] || []).push(a); });
+
   celdas.forEach(c => {
     const iso = isoLocal(c.d);
     const arr = porDia[iso] || [];
@@ -1388,11 +1458,14 @@ function renderCalendario(){
       CATS.forEach(cc => { const n = cuenta[cc] || 0; if(n > max){ max = n; mejor = cc; } });
       estilo = ` style="--dCon:${colorDe(mejor)}"`;
     }
+    const nAl = (alDia[iso] || []).length;
     const cls = "calDia" + (c.fuera ? " fuera" : "") + (iso === calHoy ? " hoy" : "") +
                 (iso === calSel ? " sel" : "") + (arr.length ? " conDato" : "");
+    const pie = nAl ? `<span class="alr" title="${nAl} alarma(s)">⏰${nAl > 1 ? " " + nAl : ""}</span>` : "";
     h += `<div class="${cls}"${estilo} role="button" tabindex="0" data-iso="${iso}" title="${
-            arr.length ? arr.length + " elemento(s): pulsa para ver" : "Pulsa para ver o agregar"}">` +
-          `<span class="n">${c.d.getDate()}</span><span class="puntos">${puntos}</span>${mas}</div>`;
+            (arr.length ? arr.length + " elemento(s): pulsa para ver" : "Pulsa para ver o agregar") +
+            (nAl ? " · " + nAl + " alarma(s)" : "")}">` +
+          `<span class="n">${c.d.getDate()}</span><span class="puntos">${puntos}</span>${mas}${pie}</div>`;
   });
   h += '</div><div class="leyenda">' +
        '<span class="badge leyMes">fondo apagado = otro mes</span>' +
@@ -1518,10 +1591,11 @@ function renderDiaTrabajo(){
   </div>
   <div id="huecoBarra"></div>
   <div class="accDia">
+    <button data-act="alarma">⏰ Poner alarma</button>
     <button data-act="adjuntar">📎 Adjuntar archivo</button>
     <button data-act="foto">📷 Tomar foto</button>
     <button data-act="lista">🗂 Ver en la lista</button>
-  </div>`;
+  </div>` + alarmasDelDiaHTML(calSel);
 
   h += muestran.length
     ? muestran.map(o => tarjetaHTML(DATOS.indexOf(o), o)).join("")
@@ -1534,6 +1608,9 @@ function renderDiaTrabajo(){
   meterBarra();              /* el sistema entera al área del día elegido */
   list.querySelectorAll("[data-act]").forEach(el => {
     el.onclick = () => diaAccion(el.dataset.act);
+  });
+  list.querySelectorAll("[data-alarma-borrar]").forEach(el => {
+    el.onclick = () => quitarAlarma(el.dataset.alarmaBorrar);
   });
 }
 
@@ -2180,7 +2257,9 @@ const mismaEntrada = (a, b) => ["f","c","t","u","m","e","fb"].every(k => (a[k]||
 async function refrescar(){
   const r = await leerRegistro(); if(r) DATOS = r.map(aObj);
   PAPELERA = await leerPapelera();
+  ALARMAS = await leerAlarmas();
   renderTodo();
+  revisarRecordatorios();
 }
 
 function fmtCorto(iso){
@@ -2498,23 +2577,36 @@ function apuntar(arr, clave, nro){
 }
 function revisarRecordatorios(){
   const caja = $("avisos");
-  if(!caja || !DATOS.length) return;
+  if(!caja) return;
   const hoy = isoLocal(new Date());
   const man = isoLocal(new Date(Date.now() + 864e5));
   const vistos = avisosVistos();
   const lista = DATOS.filter(o => /^\d{4}-\d{2}-\d{2}$/.test(o.f||"") && (o.f === hoy || o.f === man))
                      .sort((a,b) => a.f.localeCompare(b.f) || a.t.localeCompare(b.t));
   const pend = lista.filter(x => vistos.indexOf(x.f + "|" + x.t) < 0);
-  if(!pend.length){ caja.classList.add("oculto"); caja.innerHTML = ""; return; }
+  const alFilas = bannerAlarmas();
+  if(!pend.length && !alFilas.length){ caja.classList.add("oculto"); caja.innerHTML = ""; return; }
   caja.classList.remove("oculto");
-  caja.innerHTML = "<div class='avisTit'>🔔 <b>Recordatorios</b> · lo programado para hoy y mañana</div>" +
+  caja.innerHTML =
+    (pend.length ? "<div class='avisTit'>🔔 <b>Recordatorios</b> · lo programado para hoy y mañana</div>" +
     pend.map((x,i) => "<div class='avisFila'><span><b>" + (x.f === hoy ? "Hoy" : "Mañana") +
       "</b> · " + esc(fmtFecha(x.f).txt) + " — <b>" + esc(x.t) + "</b>" +
       (x.m ? "<span class='avisMotivo'>" + esc(String(x.m).slice(0,110)) + "</span>" : "") +
       "</span><button class='avisOk' data-i='" + i + "' title='Ya lo vi'>✓</button></div>").join("") +
-    "<button class='avisTodo' id='avisTodo'>✓ Entendido: no mostrar estos otra vez</button>";
-  caja.querySelectorAll(".avisOk").forEach(b => b.onclick = () => {
+    "<button class='avisTodo' id='avisTodo'>✓ Entendido: no mostrar estos otra vez</button>" : "") +
+    (alFilas.length ? "<div class='avisTit' style='margin-top:10px'>⏰ <b>Alarmas</b> · suenan a la hora puesta</div>" +
+    alFilas.map(a => "<div class='avisFila'><span><b>" + esc(a.h) + "</b> · " +
+      (a.f === hoy ? "Hoy" : a.f === man ? "Mañana" : esc(fmtFecha(a.f).txt)) + " — <b>" +
+      esc(a.t || "Alarma") + "</b>" +
+      "<span class='avisMotivo'>" +
+      (a.est === "sonó" ? "⏰ ya sonó · " : a.est === "perdida" ? "⏰ pasada sin abrirse · " : "") +
+      esc(tonoNombre(a.tono)) + "</span>" +
+      "</span><button class='avisOk' data-al='" + esc(String(a.id)) + "' title='Ya lo vi'>✓</button></div>").join("") : "");
+  caja.querySelectorAll(".avisOk[data-i]").forEach(b => b.onclick = () => {
     const x = pend[+b.dataset.i]; apuntar(null, x.f + "|" + x.t, 0); revisarRecordatorios();
+  });
+  caja.querySelectorAll(".avisOk[data-al]").forEach(b => b.onclick = () => {
+    apuntar(null, "al|" + b.dataset.al, 0); revisarRecordatorios();
   });
   const todo = $("avisTodo");
   if(todo) todo.onclick = () => { pend.forEach(x => apuntar(null, x.f + "|" + x.t, 0)); revisarRecordatorios(); };
@@ -2529,8 +2621,8 @@ function revisarRecordatorios(){
     });
   }
 }
-window.addEventListener("focus", revisarRecordatorios);
-document.addEventListener("visibilitychange", () => { if(!document.hidden) revisarRecordatorios(); });
+window.addEventListener("focus", () => { revisarRecordatorios(); tickAlarmas(); });
+document.addEventListener("visibilitychange", () => { if(!document.hidden){ revisarRecordatorios(); tickAlarmas(); } });
 async function pedirAvisos(){
   if(typeof Notification === "undefined"){
     toast("Este navegador no admite notificaciones, pero el banner de arriba sí avisa al abrir");
@@ -2542,6 +2634,233 @@ async function pedirAvisos(){
     else toast("No se dio permiso: el banner de arriba seguirá avisando cuando abras tu espacio", true);
   }catch(e){ toast("No se pudo pedir permiso de avisos", true); }
 }
+
+/* ============================ ALARMAS CON SONIDO (día y hora exacta) */
+let ALARMAS = [];
+const TONOS = {"1":"🔔 Campana", "2":"📢 Doble pip", "3":"🚨 Alerta urgente", "4":"🎵 Melodía"};
+const tonoNombre = n => TONOS[String(n)] || TONOS["1"];
+const esFecha = f => /^\d{4}-\d{2}-\d{2}$/.test(f || "");
+const esHora  = h => /^\d{2}:\d{2}$/.test(h || "");
+
+/* guardado: en este equipo siempre; en la nube cuando hay token conectado */
+function alarmasDeLocal(){ try{ return JSON.parse(localStorage.getItem("miespacio_alarmas")||"[]"); }catch(e){ return []; } }
+function guardarLocalAlarmas(a){ try{ localStorage.setItem("miespacio_alarmas", JSON.stringify(a)); }catch(e){} }
+/* la nube y este equipo se JUNTAN (sin repetir): así una alarma puesta sin token
+   no se borra al recargar, aunque el archivo de la nube venga vacío */
+function unirAlarmas(nube, local){
+  const m = new Map();
+  (Array.isArray(nube) ? nube : []).concat(Array.isArray(local) ? local : [])
+    .forEach(x => { if(x && x.id != null) m.set(String(x.id), x); });   /* en igual id gana la nube */
+  return [...m.values()];
+}
+async function leerAlarmas(){
+  let nube = null;
+  const info = repoInfo();
+  if(info){
+    try{
+      const d = await gh("GET","/repos/"+info.owner+"/"+info.repo+"/contents/alarmas.json?ref=main");
+      const j = JSON.parse(deBase64(d.content));
+      if(Array.isArray(j)) nube = j;
+    }catch(e){}
+  }
+  if(!nube){                                    /* sin token: lo que haya publicado la web */
+    try{
+      const r = await fetch("alarmas.json", {cache:"no-store"});
+      if(r.ok){ const j = await r.json(); if(Array.isArray(j)) nube = j; }
+    }catch(e){}
+  }
+  const juntas = unirAlarmas(nube, alarmasDeLocal());
+  guardarLocalAlarmas(juntas);                  /* el equipo se queda con el conjunto completo */
+  return juntas;
+}
+async function guardarAlarmas(mensaje){
+  guardarLocalAlarmas(ALARMAS);
+  const info = repoInfo();
+  if(!info || !token()) return;                       /* sin token: solo en este equipo */
+  try{
+    const ruta = "/repos/"+info.owner+"/"+info.repo+"/contents/alarmas.json";
+    let actual = null;
+    try{ actual = await gh("GET", ruta+"?ref=main"); }catch(e){ actual = null; }
+    await gh("PUT", ruta, {message:mensaje, content:aBase64(JSON.stringify(ALARMAS,null,1)),
+                           branch:"main", sha: actual? actual.sha : undefined});
+  }catch(e){ toast("Alarma guardada en este equipo; la nube no aceptó el cambio", true); }
+}
+
+/* sonido generado en el navegador: no necesita archivos ni internet */
+let AC = null;
+function audioCtx(){
+  try{
+    const C = window.AudioContext || window.webkitAudioContext;
+    if(!C) return null;
+    if(!AC) AC = new C();
+    if(AC.state === "suspended") AC.resume();
+    return AC;
+  }catch(e){ return null; }
+}
+function nota(f, t0, dur, tipo, vol){
+  const ac = audioCtx(); if(!ac) return;
+  const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + t0;
+  o.type = tipo || "sine"; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol || .35, t + .02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(ac.destination);
+  o.start(t); o.stop(t + dur + .05);
+}
+function toque(tono){                                /* una vuelta del sonido elegido */
+  switch(String(tono)){
+    case "2": nota(880, 0, .12, "square", .22); nota(880, .18, .12, "square", .22); break;
+    case "3": nota(1046, 0, .16, "sawtooth", .28); nota(784, .16, .16, "sawtooth", .28);
+              nota(1046, .32, .16, "sawtooth", .28); nota(784, .48, .16, "sawtooth", .28); break;
+    case "4": [523,659,784,1046].forEach((f,i) => nota(f, i*.16, .34, "triangle", .3)); break;
+    default:  nota(1318, 0, .55, "sine", .42); nota(1760, .13, .7, "sine", .3);           /* campana */
+  }
+}
+let sonando = null;
+function sonarAlarma(tono){                          /* suena varias veces seguidas */
+  if(sonando) return;
+  let n = 0;
+  const paso = () => { toque(tono); n++;
+                       if(n < 4) sonando = setTimeout(paso, 1400); else sonando = null; };
+  sonando = setTimeout(paso, 10);
+}
+/* la app también puede DECIR el mensaje: voz del navegador en español */
+function decir(txt){
+  try{
+    if(!txt || typeof speechSynthesis === "undefined") return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(String(txt));
+    const v = (speechSynthesis.getVoices() || []).find(x => /^es/i.test(x.lang));
+    if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = "es-ES"; }
+    u.rate = 1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+/* el navegador carga las voces en diferido: las pedimos al arrancar */
+if(typeof speechSynthesis !== "undefined"){
+  try{ speechSynthesis.getVoices(); speechSynthesis.addEventListener("voiceschanged", () => speechSynthesis.getVoices()); }catch(e){}
+}
+/* el navegador solo deja sonar tras un toque o clic del usuario */
+["pointerdown","touchstart","keydown"].forEach(ev =>
+  document.addEventListener(ev, () => audioCtx(), {once:true, passive:true}));
+
+/* cuándo le toca a cada alarma: "sonó" (hasta 1 hora de retraso) o "perdida" */
+function estadoAlarma(a, ahora){
+  if(!esFecha(a.f) || !esHora(a.h)) return "";
+  const t = new Date(a.f + "T" + a.h + ":00");
+  if(isNaN(t)) return "";
+  const dif = ahora - t;
+  if(dif < 0) return "";
+  return dif <= 36e5 ? "sonó" : "perdida";
+}
+const alarmaYaAvisada = a => avisosYaAvisados().indexOf("al|" + a.id) > -1;
+const alarmaVista     = a => avisosVistos().indexOf("al|" + a.id) > -1;
+
+function tickAlarmas(){
+  if(!ALARMAS.length) return;
+  const ahora = new Date();
+  const nuevas = ALARMAS.filter(a => estadoAlarma(a, ahora) === "sonó" && !alarmaYaAvisada(a));
+  if(!nuevas.length) return;
+  nuevas.forEach(a => { apuntar(null, "al|" + a.id, 1); avisarSistema(a); });
+  const hablan = nuevas.filter(a => a.hablar !== 0);
+  if(hablan.length) decir(hablan.map(a => a.t || "Alarma").join(". "));
+  sonarAlarma(nuevas[0].tono);
+  revisarRecordatorios();
+}
+function avisarSistema(a){
+  if(typeof Notification === "undefined" || Notification.permission !== "granted") return;
+  try{ new Notification("⏰ " + a.h + (a.f === isoLocal(new Date()) ? " — ahora" : " · " + fmtFecha(a.f).txt),
+                        {body: a.t || "Alarma", tag: "al|" + a.id}); }catch(e){}
+}
+function bannerAlarmas(){
+  const ahora = new Date(), hoy = isoLocal(ahora), man = isoLocal(new Date(Date.now() + 864e5));
+  return ALARMAS.filter(a => esFecha(a.f) && esHora(a.h))
+                .filter(a => !alarmaVista(a))
+                .filter(a => (a.f === hoy || a.f === man) || estadoAlarma(a, ahora))
+                .sort((x,y) => (x.f + " " + x.h).localeCompare(y.f + " " + y.h))
+                .map(a => Object.assign({}, a, {est: estadoAlarma(a, ahora)}));
+}
+
+/* las alarmas del día elegido, dentro de su área de trabajo */
+function alarmasDelDiaHTML(iso){
+  const del = ALARMAS.filter(a => a.f === iso).sort((x,y) => (x.h||"").localeCompare(y.h||""));
+  if(!del.length) return "";
+  return del.map(a => `<div class="dtAlarma"><span>⏰ <span class="alrHora">${esc(a.h)}</span> — ` +
+    `<b>${esc(a.t || "Alarma")}</b> <span class="meta">${esc(tonoNombre(a.tono))}` +
+    `${a.hablar !== 0 ? " · 🗣" : ""}</span></span>` +
+    `<button data-alarma-borrar="${esc(String(a.id))}" title="Quitar esta alarma">🗑</button></div>`).join("");
+}
+
+/* el cuadro de alarmas */
+function renderAlarmas(){
+  const caja = $("alarmaLista"); if(!caja) return;
+  if(!ALARMAS.length){
+    caja.innerHTML = "<div class='meta'>Aún no hay alarmas. Elige abajo el día, la hora y el " +
+      "sonido y pulsa «Poner alarma».</div>";
+    return;
+  }
+  const hoy = isoLocal(new Date());
+  const orden = ALARMAS.slice().sort((x,y) => (x.f + " " + x.h).localeCompare(y.f + " " + y.h));
+  caja.innerHTML = "<div class='avisTit'>⏰ Tus alarmas · " + orden.length + "</div>" +
+    orden.map(a => "<div class='alarmaFila" + (a.f < hoy ? " alarmaPerdida" : "") + "'>" +
+      "<span class='alarmaCue'><span class='alarmaHora'>" + esc(fmtFecha(a.f).txt) + " · " + esc(a.h) + "</span>" +
+      "<b>" + esc(a.t || "Alarma") + "</b>" +
+      "<span class='avisMotivo'>" + esc(tonoNombre(a.tono)) +
+      (a.hablar !== 0 ? " · 🗣 lo dice" : "") + (a.f < hoy ? " · día pasado" : "") + "</span></span>" +
+      "<span class='alarmaAcc'>" +
+      "<button data-probar='" + esc(String(a.tono)) + "' title='Escuchar este sonido'>🔊</button>" +
+      "<button data-borrar='" + esc(String(a.id)) + "' title='Quitar esta alarma'>🗑</button>" +
+      "</span></div>").join("");
+  caja.querySelectorAll("[data-probar]").forEach(b => b.onclick = () => toque(b.dataset.probar));
+  caja.querySelectorAll("[data-borrar]").forEach(b => b.onclick = () => quitarAlarma(b.dataset.borrar));
+}
+async function quitarAlarma(id){
+  const antes = ALARMAS.length;
+  ALARMAS = ALARMAS.filter(x => String(x.id) !== String(id));
+  if(ALARMAS.length === antes) return;
+  await guardarAlarmas("Quita una alarma");
+  renderAlarmas(); render(); revisarRecordatorios();
+  toast("Alarma quitada");
+}
+function abrirAlarmas(fecha){
+  renderAlarmas();
+  $("al_fecha").value = esFecha(fecha) ? fecha : isoLocal(new Date());
+  $("al_hora").value = "09:00";
+  abrir("fondoAlarma");
+  setTimeout(() => { const el = $("al_titulo"); if(el) el.focus(); }, 60);
+}
+$("btnAlarmas").onclick  = () => abrirAlarmas();
+$("btnAlarmasM").onclick = () => abrirAlarmas();
+$("alCancelar").onclick  = () => cerrar("fondoAlarma");
+$("fondoAlarma").onclick = e => { if(e.target === $("fondoAlarma")) cerrar("fondoAlarma"); };
+$("alProbar").onclick    = () => {
+  const t = ($("al_titulo").value || "").trim();
+  toque($("al_tono").value);
+  if($("al_hablar").checked && t) decir(t);          /* oye la voz con tu propio texto */
+};
+$("alPermiso").onclick   = async () => {
+  if(typeof Notification === "undefined"){ toast("Este navegador no admite avisos del sistema", true); return; }
+  try{
+    const p = await Notification.requestPermission();
+    toast(p === "granted" ? "🔔 Aviso del sistema activado: la notificación también suena"
+                          : "Sin permiso: el sonido y el banner de arriba siguen avisando",
+          p !== "granted");
+  }catch(e){ toast("No se pudo pedir el permiso", true); }
+};
+$("alGuardar").onclick = async () => {
+  const f = $("al_fecha").value, h = $("al_hora").value;
+  if(!esFecha(f) || !esHora(h)){ toast("Falta el día o la hora de la alarma", true); return; }
+  const t = ($("al_titulo").value || "").trim() || "Alarma";
+  const tono = String($("al_tono").value || "1");
+  const hablar = $("al_hablar").checked ? 1 : 0;
+  ALARMAS.push({id: String(Date.now()), f, h, t, tono, hablar});
+  await guardarAlarmas("Pone alarma: " + t + " · " + f + " " + h);
+  $("al_titulo").value = "";
+  renderAlarmas(); render(); revisarRecordatorios(); tickAlarmas();
+  toast("⏰ Alarma puesta: " + fmtFecha(f).txt + " a las " + h + " · " + tonoNombre(tono) +
+        (hablar ? " · 🗣 lo dice con voz" : ""));
+};
+setInterval(tickAlarmas, 15000);                    /* el reloj que suena a la hora puesta */
 
 /* ================================== EXPORTAR A EXCEL (lo que estás viendo) */
 function exportarExcel(){
@@ -2590,11 +2909,13 @@ $("btnAvisos").onclick = pedirAvisos;
   const remoto = await bajarCSV();
   if(remoto) DATOS = remoto.map(aObj);
   PAPELERA = await bajarPapelera();
+  ALARMAS = await leerAlarmas();
   const ult = DATOS.map(r=>r.f).filter(Boolean).sort().pop();
   $("sub").textContent = `${DATOS.length} elementos · actualizado ${ult||"—"} · agregar, modificar y restaurar desde aquí`;
   $("foot").textContent = "Espacio personal · cambios en registro.csv de GitHub · papelera e historial desde la barra · atajos: / buscar · N nueva · Esc cerrar";
   renderTodo();
   revisarRecordatorios();
+  tickAlarmas();                 /* si había una alarma pasada mientras no estaba, suena al abrir */
   /* app instalable + sin conexión */
   if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
 })();

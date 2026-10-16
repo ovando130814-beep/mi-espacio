@@ -51,6 +51,9 @@ Ahí ves todo en una sola pantalla, con:
   pasos para restaurarlo si algún día hace falta.
 - **🔔 Recordatorios**: banner y notificación **el día antes** (y el mismo día)
   de lo programado en el calendario.
+- **⏰ Alarmas con sonido**: pones **día y hora exacta** (ej. hoy a las 15:30)
+  y a esa hora **suena** dentro de la app, con 4 tonos distintos para
+  diferenciar alarmas. El día se marca con ⏰ en el calendario.
 - **📱 App instalable sin internet**: se instala con **icono propio** y
   funciona con la **última copia guardada** aunque no haya señal.
 - **📤 Exportar a Excel**: baja en un clic un `.csv` con **exactamente lo que
@@ -70,6 +73,7 @@ MiEspacio\
 ├── index.html               ← el mismo visor para la web publicada
 ├── registro.csv             ← el catálogo: FECHA, CATEGORÍA, TÍTULO, UBICACIÓN, URL, MOTIVO, EVENTO
 ├── papelera.json            ← lo que borraste (se recupera desde la web o Restaurar.ps1)
+├── alarmas.json             ← tus alarmas con sonido (día y hora exacta)
 ├── 01-Archivos-Personales\  ← documentos personales
 ├── 02-URLs-Trabajo\         ← aquí solo se guarda la URL en el catálogo
 ├── 03-Manuales\             ← PDFs de manuales

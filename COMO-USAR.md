@@ -335,6 +335,38 @@ Un botón te baja **todo tu espacio de una vez** en un solo archivo
 > Los avisos salen al abrir o actualizar la app y mientras esté abierta: no
 > dependen de ningún servicio de pago ni se apagan si cambias de equipo.
 
+## ⏰ Alarmas con sonido: el día y la HORA exacta
+
+Distinto de lo de arriba: aquí eliges **la hora exacta** a la que quieres que
+**suene**.
+
+1. Pulsa **⏰ Alarmas** en la barra de arriba (o, en el celular,
+   **⚙ Filtros → ⏰ Alarmas con sonido**). También puedes abrir un día del
+   calendario y pulsar **⏰ Poner alarma**, que el día ya viene puesto.
+2. Escribe **qué te recuerdo**, elige **día** y **hora** (ej. hoy a las 15:30)
+   y elige el **sonido**.
+3. Con **🔊 Probar el sonido** lo escuchas antes de guardarlo.
+4. **🔔 Activar el aviso del sistema** hay que pulsarlo una sola vez: así,
+   además del sonido, sale la notificación del teléfono o del PC.
+5. **Poner alarma** y ya está: ese día se marca con **⏰** en el calendario y
+   la alarma aparece en su área de trabajo.
+
+Hay **4 sonidos** distintos — 🔔 campana, 📢 doble pip, 🚨 alerta urgente,
+🎵 melodía — para poder diferenciar una alarma de otra.
+
+| cómo se comporta | detalle |
+|---|---|
+| **Suena** | a la hora puesta, varias veces seguidas |
+| **Con un poco de retraso** | si abres la app dentro de la hora siguiente, suena igual y el banner avisa «⏰ ya sonó» |
+| **Más de una hora tarde** | ya no suena: sale en el banner como «⏰ pasada sin abrirse» para que la marques con **✓** |
+| **Para no volver a verla** | **✓** en esa fila del banner |
+| **Dónde se guardan** | en `alarmas.json` (se respalda con 📦 Respaldo); sin conectar la cuenta, quedan **solo en ese equipo** |
+
+> ⚠️ **Lo importante**: para que suene, **la app tiene que estar abierta** (en el
+> celular, abierta o minimizada basta). Ningún navegador puede sonar con la app
+> cerrada, así que las alarmas de madrugada siguen siendo cosa del reloj del
+> teléfono.
+
 ## 📱 Instalar la app en el celular (funciona sin internet)
 
 | celular | cómo |
